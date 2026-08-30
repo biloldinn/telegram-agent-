@@ -10,7 +10,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime, timedelta
 from config import MONGO_URI, DB_NAME, TRIAL_DAYS
 
-client = AsyncIOMotorClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+effective_uri = MONGO_URI if (MONGO_URI and ("mongodb://" in MONGO_URI or "mongodb+srv://" in MONGO_URI)) else "mongodb://localhost:27017"
+client = AsyncIOMotorClient(effective_uri, serverSelectionTimeoutMS=5000)
 db = client[DB_NAME]
 
 users_col = db["users"]
