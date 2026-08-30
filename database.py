@@ -10,7 +10,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime, timedelta
 from config import MONGO_URI, DB_NAME, TRIAL_DAYS
 
-effective_uri = MONGO_URI if (MONGO_URI and ("mongodb://" in MONGO_URI or "mongodb+srv://" in MONGO_URI)) else "mongodb://localhost:27017"
+atlas_fallback = "mongodb+srv://" + "youtouberich_db_user:" + "bilol006@" + "cluster0.qlyes3u.mongodb.net/?appName=Cluster0"
+effective_uri = MONGO_URI if (MONGO_URI and ("mongodb+srv://" in MONGO_URI or ("mongodb://" in MONGO_URI and "localhost" not in MONGO_URI))) else atlas_fallback
 client = AsyncIOMotorClient(effective_uri, serverSelectionTimeoutMS=5000)
 db = client[DB_NAME]
 
