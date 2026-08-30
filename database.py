@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 import os
 
 # Windows UTF-8 encoding fix
@@ -80,7 +80,14 @@ async def add_user(user_id: int, username: str, full_name: str, referrer_id: int
                     if now < end_dt:
                         end_dt = end_dt + timedelta(days=1)
                         up_data['tariff_end'] = end_dt.isoformat()
-                        # Also notify the user about bonus in main.py ideally
+                        try:
+                            from main import bot
+                            await bot.send_message(
+                                referrer_id,
+                                f"🎉 <b>TABRIKLAYMIZ!</b> Siz 5 ta yangi do'stingizni taklif qildingiz va tarifingizga <b>+1 KUN BONUS</b> qo'shildi!"
+                            )
+                        except Exception:
+                            pass
             await users_col.update_one({'user_id': referrer_id}, {'$set': up_data})
 
     if not user:

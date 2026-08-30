@@ -37,9 +37,13 @@ dp = Dispatcher()
 org_scrapers = {}
 pending_tariff = {}
 
-groq_client = AsyncGroq(api_key=GROQ_API_KEY)
-genai.configure(api_key=GEMINI_API_KEY)
-gemini_model = genai.GenerativeModel("gemini-pro")
+groq_client = AsyncGroq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
+groq_backup_client = AsyncGroq(api_key=GROQ_API_KEY_BACKUP) if GROQ_API_KEY_BACKUP else None
+if GEMINI_API_KEY:
+    genai.configure(api_key=GEMINI_API_KEY)
+    gemini_model = genai.GenerativeModel("gemini-pro")
+else:
+    gemini_model = None
 
 # ============ DOIMIY MENYU (REPLY KEYBOARD) ============
 def get_contact_keyboard():
@@ -55,7 +59,7 @@ def get_main_menu():
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="🔗 Profilni ulash (AI)")],
-            [KeyboardButton(text="💳 Tariflar"), KeyboardButton(text="🎁 Bonus olish")],
+            [KeyboardButton(text="💳 Tariflar"), KeyboardButton(text="👥 Do'stlarni taklif qilish")],
             [KeyboardButton(text="👤 Mening Profilim"), KeyboardButton(text="🤖 AI Sozlamalar")],
             [KeyboardButton(text="📞 Yordam")]
         ],
@@ -129,24 +133,45 @@ MULOQOT QOIDALARI:
 SUHBAT TARIXI:
 {history_text}"""
 
-    try:
-        resp = await groq_client.chat.completions.create(
-            model="openai/gpt-oss-20b",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": text}
-            ],
-            temperature=0.6,
-            max_tokens=280
-        )
-        return resp.choices[0].message.content
-    except Exception:
+    if groq_client:
+        try:
+            resp = await groq_client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": text}
+                ],
+                temperature=0.6,
+                max_tokens=280
+            )
+            return resp.choices[0].message.content
+        except Exception:
+            pass
+
+    if groq_backup_client:
+        try:
+            resp = await groq_backup_client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": text}
+                ],
+                temperature=0.6,
+                max_tokens=280
+            )
+            return resp.choices[0].message.content
+        except Exception:
+            pass
+
+    if gemini_model:
         try:
             full_prompt = f"{system_prompt}\n\nMijoz: {text}\nSiz:"
             res = await asyncio.to_thread(gemini_model.generate_content, full_prompt)
             return res.text
         except Exception:
-            return "Kechirasiz, birozdan so'ng qayta yozing."
+            pass
+
+    return "Kechirasiz, birozdan so'ng qayta yozing."
 
 # ============ /START COMMAND ============
 @dp.message(CommandStart())
@@ -243,9 +268,25 @@ Bu platforma orqali siz shaxsiy akkauntingizga Sun'iy Intellekt ulab olishingiz 
 async def btn_tariffs_handler(message: types.Message):
     await show_tariffs(message)
 
-@dp.message(F.text == "📦 Xizmatlar")
-async def btn_products_handler(message: types.Message):
-    await show_products(message)
+@dp.message(F.text.in_(["👥 Do'stlarni taklif qilish", "🎁 Bonus olish", "📦 Xizmatlar"]))
+async def btn_referral_handler(message: types.Message):
+    user_id = message.from_user.id
+    user = await get_user(user_id)
+    ref_count = user.get('referral_count', 0) if user else 0
+    bot_info = await bot.get_me()
+    ref_link = f"https://t.me/{bot_info.username}?start={user_id}"
+    
+    text = f"""👥 <b>DO'STLARNI TAKLIF QILISH (REFERRAL)</b>
+
+🔗 Sizning taklif havolangiz:
+<code>{ref_link}</code>
+
+🎁 <b>Bonus shartlari:</b>
+Har <b>5 ta do'stingiz</b> ushbu havola orqali botga kirsa, sizning faol tarifingizga <b>avtomatik ravishda 1 KUN BONUS</b> qo'shiladi!
+<i>(Eslatma: Bonus ishlashi uchun sizda faol pullik tarif bo'lishi kerak).</i>
+
+📊 Hozirgacha taklif qilgan do'stlaringiz: <b>{ref_count} ta</b>"""
+    await message.answer(text)
 
 @dp.message(F.text == "👤 Mening Profilim")
 async def btn_profile_handler(message: types.Message):
@@ -262,8 +303,8 @@ async def btn_help_handler(message: types.Message):
 # Fallbacks for commands if someone types them
 @dp.message(Command("buy"))
 async def cmd_buy(m: types.Message): await show_tariffs(m)
-@dp.message(Command("products"))
-async def cmd_prod(m: types.Message): await show_products(m)
+@dp.message(Command("referral"))
+async def cmd_ref(m: types.Message): await btn_referral_handler(m)
 @dp.message(Command("profile"))
 async def cmd_prof(m: types.Message): await show_profile(m)
 @dp.message(Command("help"))
@@ -280,25 +321,27 @@ async def cb_show_tariffs(callback: CallbackQuery):
 @dp.callback_query(F.data == "buy_standart")
 async def cb_buy_standart(callback: CallbackQuery):
     pending_tariff[callback.from_user.id] = 'standart'
+    await users_col.update_one({'user_id': callback.from_user.id}, {'$set': {'pending_tariff': 'standart'}}, upsert=True)
     await callback.message.edit_text(f"""⭐ <b>STANDART TARIF TANLANDI</b>
 
 💰 To'lov summasi: <b>{TARIFFS['standart']['price']:,} so'm</b>
 💳 Karta: <code>{CARD_NUMBER}</code>
 👤 Egasi: <b>{CARD_OWNER}</b>
 
-📸 <i>Iltimos, to'lovni amalga oshirib, to'lov chekining (skrinshot) rasmini shu chatga yuboring!</i>""", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Orqaga", callback_data="btn_tariffs")]]))
+📸 <i>Iltimos, to'lovni amalga oshirib, to'lov chekining (skrinshot yoki PDF) rasmini shu chatga yuboring!</i>""", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Orqaga", callback_data="btn_tariffs")]]))
     await callback.answer()
 
 @dp.callback_query(F.data == "buy_smm")
 async def cb_buy_smm(callback: CallbackQuery):
     pending_tariff[callback.from_user.id] = 'smm'
+    await users_col.update_one({'user_id': callback.from_user.id}, {'$set': {'pending_tariff': 'smm'}}, upsert=True)
     await callback.message.edit_text(f"""🚀 <b>SMM PRO TARIFI TANLANDI</b>
 
 💰 To'lov summasi: <b>{TARIFFS['smm']['price']:,} so'm</b>
 💳 Karta: <code>{CARD_NUMBER}</code>
 👤 Egasi: <b>{CARD_OWNER}</b>
 
-📸 <i>Iltimos, to'lovni amalga oshirib, to'lov chekining (skrinshot) rasmini shu chatga yuboring!</i>""", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Orqaga", callback_data="btn_tariffs")]]))
+📸 <i>Iltimos, to'lovni amalga oshirib, to'lov chekining (skrinshot yoki PDF) rasmini shu chatga yuboring!</i>""", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Orqaga", callback_data="btn_tariffs")]]))
     await callback.answer()
 
 @dp.callback_query(F.data == "ai_toggle_on")
@@ -404,7 +447,7 @@ async def cmd_payments(message: types.Message):
         msg += f"👉 Tasdiqlash: /approve_{p['id']} | Rad: /reject_{p['id']}\n\n"
     await message.answer(msg)
 
-# ============ TO'LOV CHEKI (PHOTO) ============
+# ============ TO'LOV CHEKI (PHOTO / PDF) ============
 @dp.message(F.photo | F.document)
 async def handle_receipt(message: types.Message):
     user_id = message.from_user.id
@@ -413,20 +456,24 @@ async def handle_receipt(message: types.Message):
     if message.photo:
         file_id = message.photo[-1].file_id
     elif message.document:
-        if message.document.mime_type == 'application/pdf' or 'image' in str(message.document.mime_type):
+        mime = str(message.document.mime_type or '').lower()
+        if 'pdf' in mime or 'image' in mime:
             file_id = message.document.file_id
         else:
-            if user_id in pending_tariff:
-                await message.answer("❌ Iltimos, to'lov chekini faqat Rasm (Skrinshot) yoki PDF fayl shaklida yuboring.")
+            await message.answer("❌ Iltimos, to'lov chekini faqat Rasm (Skrinshot) yoki PDF fayl shaklida yuboring.")
             return
             
     if not file_id: return
 
-    if user_id in pending_tariff:
-        t_key = pending_tariff[user_id]
+    user_doc = await get_user(user_id)
+    t_key = (user_doc or {}).get('pending_tariff') or pending_tariff.get(user_id)
+
+    if t_key and t_key in TARIFFS:
         t_data = TARIFFS[t_key]
         p_id = await add_payment(user_id, t_key, t_data['price'], file_id)
-        del pending_tariff[user_id]
+        if user_id in pending_tariff:
+            del pending_tariff[user_id]
+        await users_col.update_one({'user_id': user_id}, {'$unset': {'pending_tariff': ""}})
 
         await message.answer(f"""📸 <b>To'lov cheki qabul qilindi!</b>
 
@@ -435,10 +482,15 @@ async def handle_receipt(message: types.Message):
 🆔 To'lov ID: <code>#{p_id}</code>
 ⏳ Holat: <b>Admin tekshirmoqda. Tez orada tasdiqlanadi!</b>""")
 
-        await bot.send_photo(
-            chat_id=ADMIN_ID,
-            photo=photo_id,
-            caption=f"""💰 <b>YANGI TO'LOV KELDI!</b>
+        markup = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(text="✅ Tasdiqlash", callback_data=f"admin_approve_{p_id}"),
+                    InlineKeyboardButton(text="❌ Rad etish", callback_data=f"admin_reject_{p_id}")
+                ]
+            ]
+        )
+        caption_text = f"""💰 <b>YANGI TO'LOV CHEKI KELDI!</b>
 
 🆔 To'lov ID: <code>#{p_id}</code>
 👤 Mijoz: <b>{message.from_user.full_name}</b> (@{message.from_user.username or 'yoq'})
@@ -448,9 +500,68 @@ async def handle_receipt(message: types.Message):
 
 ✅ Tasdiqlash: /approve_{p_id}
 ❌ Rad etish: /reject_{p_id}"""
-        )
+
+        try:
+            if message.photo:
+                await bot.send_photo(
+                    chat_id=ADMIN_ID,
+                    photo=file_id,
+                    caption=caption_text,
+                    reply_markup=markup
+                )
+            else:
+                await bot.send_document(
+                    chat_id=ADMIN_ID,
+                    document=file_id,
+                    caption=caption_text,
+                    reply_markup=markup
+                )
+        except Exception as e:
+            print(f"[Admin Send Error] {e}")
+            await bot.send_message(
+                chat_id=ADMIN_ID,
+                text=f"{caption_text}\n\n<i>(Chek fayli: {file_id})</i>",
+                reply_markup=markup
+            )
     else:
         await message.answer("📸 <i>Chek yuborishdan oldin iltimos menyudan tarifni tanlang:</i>", reply_markup=get_tariffs_keyboard())
+
+@dp.callback_query(F.data.startswith("admin_approve_"))
+async def cb_admin_approve(callback: CallbackQuery):
+    if callback.from_user.id != ADMIN_ID: return
+    try:
+        pid = int(callback.data.replace("admin_approve_", ""))
+        p = await get_payment_by_id(pid)
+        if p and p.get('status') == 'pending':
+            await update_payment_status(pid, 'approved')
+            await activate_tariff(p['user_id'], p['tariff_type'], days=30)
+            await bot.send_message(p['user_id'], f"🎉 <b>TO'LOVINGIZ TASDIQLANDI!</b>\n\n📦 <b>{p['tariff_type'].upper()}</b> tarifi 30 kunga faollashtirildi!\nProfilingizga AI muvaffaqiyatli ulandi.")
+            try:
+                await callback.message.edit_caption(caption=(callback.message.caption or "") + "\n\n✅ <b>TASDIQLANDI!</b>", reply_markup=None)
+            except Exception:
+                pass
+            await callback.answer("✅ To'lov tasdiqlandi!")
+        else:
+            await callback.answer("❌ Bu to'lov allaqachon ko'rib chiqilgan!", show_alert=True)
+    except Exception as e:
+        await callback.answer(f"Xato: {e}", show_alert=True)
+
+@dp.callback_query(F.data.startswith("admin_reject_"))
+async def cb_admin_reject(callback: CallbackQuery):
+    if callback.from_user.id != ADMIN_ID: return
+    try:
+        pid = int(callback.data.replace("admin_reject_", ""))
+        p = await get_payment_by_id(pid)
+        if p:
+            await update_payment_status(pid, 'rejected')
+            await bot.send_message(p['user_id'], "❌ To'lov chekingiz tasdiqlanmadi. Iltimos, ma'lumotlarni tekshirib qayta to'lov qiling.")
+            try:
+                await callback.message.edit_caption(caption=(callback.message.caption or "") + "\n\n❌ <b>RAD ETILDI!</b>", reply_markup=None)
+            except Exception:
+                pass
+            await callback.answer("❌ To'lov rad etildi!")
+    except Exception as e:
+        await callback.answer(f"Xato: {e}", show_alert=True)
 
 
 # ============ PROFILNI ULASH (USERBOT SAAS) ============
@@ -808,12 +919,23 @@ async def handle_text(message: types.Message):
     await message.answer(response)
     await save_message(user_id, text, response)
 
-# ============ ISHGA TUSHIRISH ============
+# ============ ISHGA TUSHIRISH (24/7 RESILIENT LOOP) ============
+async def start_polling_loop():
+    while True:
+        try:
+            await bot.delete_webhook(drop_pending_updates=True)
+            await dp.start_polling(bot, handle_signals=False)
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            print(f"[Polling Ogohlantirish] {e}. 5 soniyadan so'ng qayta ulanadi...")
+            await asyncio.sleep(5)
+
 async def main():
     print("[1/2] MongoDB Atlas bazasiga ulanmoqda...")
     await init_db()
 
-    print("[2/2] Telegram Bot Polling ishga tushmoqda...")
+    print("[2/2] Telegram Bot ishga tushmoqda...")
     bot_info = await bot.get_me()
     print(f"✅ BOT TAYYOR: @{bot_info.username} ({bot_info.first_name})")
     print(f"👑 Admin ID: {ADMIN_ID}")
@@ -823,9 +945,7 @@ async def main():
     cursor = users_col.find({})
     await load_active_userbots(cursor)
 
-
-    await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
+    await start_polling_loop()
 
 if __name__ == '__main__':
     try:

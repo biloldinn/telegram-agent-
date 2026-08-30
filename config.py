@@ -1,4 +1,4 @@
-﻿import os
+import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,6 +15,7 @@ DB_NAME = os.getenv("DB_NAME", "telegram_ai_bot")
 # ============ AI KALITLARI ============
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GROQ_API_KEY_BACKUP = os.getenv("GROQ_API_KEY_BACKUP", "")
 
 # ============ SINOV MUDDATI (TRIAL) ============
 TRIAL_DAYS = int(os.getenv("TRIAL_DAYS", "0"))

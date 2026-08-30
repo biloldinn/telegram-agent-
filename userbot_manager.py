@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 from telethon import TelegramClient, events
 import datetime
 
@@ -9,13 +9,14 @@ def dlog(msg):
 from telethon.errors import SessionPasswordNeededError, PhoneCodeInvalidError, FloodWaitError
 from database import update_user_persona, get_user, check_user_access, get_user_messages, save_message
 from groq import AsyncGroq
-from config import GROQ_API_KEY
+from config import GROQ_API_KEY, GROQ_API_KEY_BACKUP
 import os
 
 API_ID = 2040
 API_HASH = "b18441a1ff607e10a989891a5462e627"
 
-groq_client = AsyncGroq(api_key=GROQ_API_KEY)
+groq_client = AsyncGroq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
+groq_backup_client = AsyncGroq(api_key=GROQ_API_KEY_BACKUP) if GROQ_API_KEY_BACKUP else None
 
 # Xotirada ishlayotgan userbotlar ro'yxati
 active_userbots = {}
@@ -54,31 +55,52 @@ VAZIFA:
 SUHBAT TARIXI:
 {history_text}"""
 
-    try:
-        resp = await groq_client.chat.completions.create(
-            model="openai/gpt-oss-20b",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": text}
-            ],
-            temperature=0.6,
-            max_tokens=250
-        )
-        return resp.choices[0].message.content
-    except Exception as e:
-        dlog(f"AI API Xatosi: {e}")
+    # 1. Try primary Groq
+    if groq_client:
         try:
-            # Fallback to gemini if groq fails
-            import google.generativeai as genai
-            from config import GEMINI_API_KEY
+            resp = await groq_client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": text}
+                ],
+                temperature=0.6,
+                max_tokens=250
+            )
+            return resp.choices[0].message.content
+        except Exception as e:
+            dlog(f"Primary Groq Xatosi: {e}")
+
+    # 2. Try backup Groq
+    if groq_backup_client:
+        try:
+            resp = await groq_backup_client.chat.completions.create(
+                model="openai/gpt-oss-20b",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": text}
+                ],
+                temperature=0.6,
+                max_tokens=250
+            )
+            return resp.choices[0].message.content
+        except Exception as e:
+            dlog(f"Backup Groq Xatosi: {e}")
+
+    # 3. Try Gemini as final fallback
+    try:
+        import google.generativeai as genai
+        from config import GEMINI_API_KEY
+        if GEMINI_API_KEY:
             genai.configure(api_key=GEMINI_API_KEY)
             model = genai.GenerativeModel("gemini-pro")
             full_prompt = f"{system_prompt}\n\nMijoz: {text}\nSiz:"
             res = model.generate_content(full_prompt)
             return res.text
-        except Exception as e2:
-            dlog(f"Gemini API Xatosi: {e2}")
-            return ""
+    except Exception as e2:
+        dlog(f"Gemini API Xatosi: {e2}")
+
+    return ""
 
 async def on_new_userbot_message(event):
     me = await event.client.get_me()
