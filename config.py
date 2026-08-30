@@ -5,17 +5,21 @@ load_dotenv()
 
 def clean_env(key, default=""):
     val = os.getenv(key, default)
-    if val is None:
+    if val is None or not str(val).strip() or str(val).strip().strip('"').strip("'") == "":
         return default
     return str(val).strip().strip('"').strip("'")
 
+def clean_int(key, default=0):
+    val = clean_env(key, str(default))
+    try:
+        return int(val)
+    except Exception:
+        return default
+
 # ============ TELEGRAM BOT SOZLAMALARI ============
 BOT_TOKEN = clean_env("BOT_TOKEN", "")
-try:
-    ADMIN_ID = int(clean_env("ADMIN_ID", "0"))
-except Exception:
-    ADMIN_ID = 0
-OWNER_NAME = clean_env("OWNER_NAME", "Admin")
+ADMIN_ID = clean_int("ADMIN_ID", 6762465157)
+OWNER_NAME = clean_env("OWNER_NAME", "Turg'unboyev Biloliddin")
 
 # ============ MONGODB BAZA SOZLAMALARI ============
 MONGO_URI = clean_env("MONGO_URI", "")
@@ -27,14 +31,11 @@ GROQ_API_KEY = clean_env("GROQ_API_KEY", "")
 GROQ_API_KEY_BACKUP = clean_env("GROQ_API_KEY_BACKUP", "")
 
 # ============ SINOV MUDDATI (TRIAL) ============
-try:
-    TRIAL_DAYS = int(clean_env("TRIAL_DAYS", "3"))
-except Exception:
-    TRIAL_DAYS = 3
+TRIAL_DAYS = clean_int("TRIAL_DAYS", 3)
 
 # ============ TO'LOV MA'LUMOTLARI ============
-CARD_NUMBER = clean_env("CARD_NUMBER", "")
-CARD_OWNER = clean_env("CARD_OWNER", "")
+CARD_NUMBER = clean_env("CARD_NUMBER", "9860356634199596")
+CARD_OWNER = clean_env("CARD_OWNER", "Turg'unboyev Biloliddin")
 
 # ============ KANAL VA GURUH LINKLARI ============
 CHANNEL_LINK = clean_env("CHANNEL_LINK", None)
