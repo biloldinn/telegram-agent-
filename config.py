@@ -3,30 +3,42 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+def clean_env(key, default=""):
+    val = os.getenv(key, default)
+    if val is None:
+        return default
+    return str(val).strip().strip('"').strip("'")
+
 # ============ TELEGRAM BOT SOZLAMALARI ============
-BOT_TOKEN = os.getenv("BOT_TOKEN", "")
-ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
-OWNER_NAME = os.getenv("OWNER_NAME", "Admin")
+BOT_TOKEN = clean_env("BOT_TOKEN", "")
+try:
+    ADMIN_ID = int(clean_env("ADMIN_ID", "0"))
+except Exception:
+    ADMIN_ID = 0
+OWNER_NAME = clean_env("OWNER_NAME", "Admin")
 
 # ============ MONGODB BAZA SOZLAMALARI ============
-MONGO_URI = os.getenv("MONGO_URI", "")
-DB_NAME = os.getenv("DB_NAME", "telegram_ai_bot")
+MONGO_URI = clean_env("MONGO_URI", "")
+DB_NAME = clean_env("DB_NAME", "telegram_ai_bot")
 
 # ============ AI KALITLARI ============
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
-GROQ_API_KEY_BACKUP = os.getenv("GROQ_API_KEY_BACKUP", "")
+GEMINI_API_KEY = clean_env("GEMINI_API_KEY", "")
+GROQ_API_KEY = clean_env("GROQ_API_KEY", "")
+GROQ_API_KEY_BACKUP = clean_env("GROQ_API_KEY_BACKUP", "")
 
 # ============ SINOV MUDDATI (TRIAL) ============
-TRIAL_DAYS = int(os.getenv("TRIAL_DAYS", "3"))
+try:
+    TRIAL_DAYS = int(clean_env("TRIAL_DAYS", "3"))
+except Exception:
+    TRIAL_DAYS = 3
 
 # ============ TO'LOV MA'LUMOTLARI ============
-CARD_NUMBER = os.getenv("CARD_NUMBER", "")
-CARD_OWNER = os.getenv("CARD_OWNER", "")
+CARD_NUMBER = clean_env("CARD_NUMBER", "")
+CARD_OWNER = clean_env("CARD_OWNER", "")
 
 # ============ KANAL VA GURUH LINKLARI ============
-CHANNEL_LINK = os.getenv("CHANNEL_LINK", None)
-GROUP_LINK = os.getenv("GROUP_LINK", None)
+CHANNEL_LINK = clean_env("CHANNEL_LINK", None)
+GROUP_LINK = clean_env("GROUP_LINK", None)
 
 # ============ TARIFLAR ============
 TARIFFS = {

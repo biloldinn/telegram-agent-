@@ -32,7 +32,8 @@ from api_scraper import TelegramOrgScraper
 from database import update_business_info
 
 # ============ BOT & AI SETUP ============
-bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+effective_token = BOT_TOKEN if (BOT_TOKEN and ":" in BOT_TOKEN) else "8828508539:AAFkPXzxh7kvFW9NKiDERNvOtwdBc5ezLRo"
+bot = Bot(token=effective_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
 org_scrapers = {}
 pending_tariff = {}
