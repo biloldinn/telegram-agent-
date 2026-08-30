@@ -920,6 +920,65 @@ async def handle_text(message: types.Message):
     await save_message(user_id, text, response)
 
 # ============ ISHGA TUSHIRISH (24/7 RESILIENT LOOP) ============
+async def check_expired_trials_cron():
+    """Har 15 daqiqada sinov muddati (3 kun) yoki tarifi tugagan foydalanuvchilarni tekshirib, eslatma yuboradi"""
+    while True:
+        try:
+            now = datetime.now()
+            # 1. Sinov muddati (3 kun) tugaganlarni tekshirish
+            cursor = users_col.find({
+                "tariff_type": "trial",
+                "expired_notified": {"$ne": True}
+            })
+            users = await cursor.to_list(length=1000)
+            for u in users:
+                t_end = u.get("tariff_end")
+                if t_end:
+                    try:
+                        end_dt = datetime.fromisoformat(t_end)
+                        if now >= end_dt:
+                            markup = InlineKeyboardMarkup(inline_keyboard=[
+                                [InlineKeyboardButton(text="💳 Tarif sotib olish", callback_data="btn_tariffs")]
+                            ])
+                            text = (
+                                "⏳ <b>3 KUNLIK BEPUL SINOV MUDDATI TUGADI!</b>\n\n"
+                                f"Hurmatli <b>{u.get('full_name', 'Foydalanuvchi')}</b>, profilingizga berilgan 3 kunlik sinov muddati yakuniga yetdi.\n\n"
+                                "🚀 <b>AI xizmati uzilib qolmasligi uchun</b> quyidagi tugma orqali tarif xarid qiling va sun'iy intellektni faollashtiring!"
+                            )
+                            await bot.send_message(chat_id=u["user_id"], text=text, reply_markup=markup)
+                            await users_col.update_one({"user_id": u["user_id"]}, {"$set": {"expired_notified": True, "ai_enabled": 0}})
+                    except Exception:
+                        pass
+
+            # 2. Pullik tarif muddati (30 kun) tugaganlarni tekshirish
+            paid_cursor = users_col.find({
+                "tariff_type": {"$in": ["standart", "smm"]},
+                "expired_notified": {"$ne": True}
+            })
+            paid_users = await paid_cursor.to_list(length=1000)
+            for u in paid_users:
+                t_end = u.get("tariff_end")
+                if t_end:
+                    try:
+                        end_dt = datetime.fromisoformat(t_end)
+                        if now >= end_dt:
+                            markup = InlineKeyboardMarkup(inline_keyboard=[
+                                [InlineKeyboardButton(text="💳 Tarifni uzaytirish", callback_data="btn_tariffs")]
+                            ])
+                            text = (
+                                "⚠️ <b>TARIFINGIZ MUDDATI TUGADI!</b>\n\n"
+                                f"Hurmatli <b>{u.get('full_name', 'Foydalanuvchi')}</b>, sizning 30 kunlik <b>{u.get('tariff_type', '').upper()}</b> tarifingiz muddati o'z nihoyasiga yetdi.\n\n"
+                                "AI yordamchisi profilingizda ishlashni to'xtatdi. Xizmatni davom ettirish uchun tarifni yangilang!"
+                            )
+                            await bot.send_message(chat_id=u["user_id"], text=text, reply_markup=markup)
+                            await users_col.update_one({"user_id": u["user_id"]}, {"$set": {"expired_notified": True, "ai_enabled": 0}})
+                    except Exception:
+                        pass
+
+        except Exception as e:
+            print(f"[Cron Error] {e}")
+        await asyncio.sleep(900) # Har 15 daqiqada tekshiradi
+
 async def start_polling_loop():
     while True:
         try:
@@ -944,6 +1003,9 @@ async def main():
     print("[3/3] Faol profil ulanishlari yuklanmoqda (SaaS)...")
     cursor = users_col.find({})
     await load_active_userbots(cursor)
+
+    # Orqa fonda avtomatik eslatma cronini yoqish
+    asyncio.create_task(check_expired_trials_cron())
 
     await start_polling_loop()
 
