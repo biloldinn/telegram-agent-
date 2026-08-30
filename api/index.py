@@ -10,6 +10,13 @@ import asyncio
 app = FastAPI(title="Telegram AI Agent Webhook")
 
 @app.get("/")
+@app.get("/api")
+@app.get("/api/index")
+@app.get("/webhook")
+@app.head("/")
+@app.head("/api")
+@app.head("/api/index")
+@app.head("/webhook")
 async def root():
     return {
         "status": "ok",
