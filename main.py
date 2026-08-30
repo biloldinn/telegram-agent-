@@ -28,14 +28,12 @@ warnings.filterwarnings("ignore", module="google.generativeai")
 from config import *
 from database import *
 from database import update_user_api
-from api_scraper import TelegramOrgScraper
 from database import update_business_info
 
 # ============ BOT & AI SETUP ============
 effective_token = BOT_TOKEN if (BOT_TOKEN and ":" in BOT_TOKEN) else "8828508539:AAFkPXzxh7kvFW9NKiDERNvOtwdBc5ezLRo"
 bot = Bot(token=effective_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
-org_scrapers = {}
 pending_tariff = {}
 
 groq_client = AsyncGroq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
