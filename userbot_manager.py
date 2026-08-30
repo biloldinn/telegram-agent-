@@ -158,8 +158,20 @@ async def on_new_userbot_message(event):
     if not user_info or not user_info.get("ai_enabled", 1):
         return
 
-    has_access, _, _, _ = await check_user_access(owner_id)
+    has_access, status_text, days_left, tariff = await check_user_access(owner_id)
     if not has_access:
+        from database import users_col
+        u = await users_col.find_one({"user_id": owner_id})
+        if u and not u.get('expired_notified'):
+            from main import bot
+            try:
+                await bot.send_message(
+                    owner_id,
+                    "⚠️ <b>Diqqat!</b>\n\nSizning 3 kunlik sinov muddatingiz yoki tarifingiz o'z nihoyasiga yetdi. AI avtomatik ravishda to'xtatildi.\n\nIltimos, AI xizmatidan uzluksiz foydalanish uchun <b>💳 Tariflar</b> bo'limidan mos tarifni xarid qiling!"
+                )
+                await users_col.update_one({'user_id': owner_id}, {'$set': {'expired_notified': True}})
+            except Exception:
+                pass
         return
 
     dlog(f"[{owner_id}] Yangi xabar keldi: {text}")

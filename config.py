@@ -18,7 +18,7 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 GROQ_API_KEY_BACKUP = os.getenv("GROQ_API_KEY_BACKUP", "")
 
 # ============ SINOV MUDDATI (TRIAL) ============
-TRIAL_DAYS = int(os.getenv("TRIAL_DAYS", "0"))
+TRIAL_DAYS = int(os.getenv("TRIAL_DAYS", "3"))
 
 # ============ TO'LOV MA'LUMOTLARI ============
 CARD_NUMBER = os.getenv("CARD_NUMBER", "")
