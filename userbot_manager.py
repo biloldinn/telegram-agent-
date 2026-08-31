@@ -368,8 +368,9 @@ async def submit_code(user_id: int, code: str, password: str = None):
 
 async def extract_and_save_persona(client, user_id):
     try:
-        # Xavfsizlik uchun ulanishdan so'ng biroz kutamiz (Ban olmaslik uchun)
-        await asyncio.sleep(5)
+        # Xavfsizlik uchun ulanishdan so'ng 2 daqiqa kutamiz (Ban olmaslik uchun)
+        # Login va darhol ma'lumot tortishni Telegram yomon ko'radi
+        await asyncio.sleep(120)
         
         sample_messages = []
         dialogs = await client.get_dialogs(limit=10)
