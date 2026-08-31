@@ -355,7 +355,7 @@ async def submit_code(user_id: int, code: str, password: str = None):
         active_userbots[user_id] = client
         login_clients.pop(user_id, None)
         
-        asyncio.create_task(extract_and_save_persona(client, user_id))
+        # asyncio.create_task(extract_and_save_persona(client, user_id))
         
         return True, "Success"
     except SessionPasswordNeededError:
