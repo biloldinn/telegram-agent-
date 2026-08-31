@@ -217,22 +217,50 @@ async def on_new_userbot_message(event):
 
 async def request_code(user_id: int, phone: str):
     session_path = f"sessions/{user_id}"
-    client = TelegramClient(session_path, 2040, 'b18441a1ff607e10a989891a5462e627')
-    await client.connect()
+    
+    # Stale sessiyalarni tozalash
+    if user_id in login_clients:
+        try:
+            await login_clients[user_id]['client'].disconnect()
+        except Exception:
+            pass
+        login_clients.pop(user_id, None)
+
+    if user_id in active_userbots:
+        try:
+            await active_userbots[user_id].disconnect()
+        except Exception:
+            pass
+        active_userbots.pop(user_id, None)
+
+    client = TelegramClient(session_path, API_ID, API_HASH)
     
     try:
+        await client.connect()
+        retries = 0
+        while not client.is_connected() and retries < 5:
+            await asyncio.sleep(0.5)
+            await client.connect()
+            retries += 1
+            
         result = await client.send_code_request(phone)
         login_clients[user_id] = {
             'client': client,
             'phone': phone,
-            'phone_code_hash': result.phone_code_hash
+            'phone_code_hash': getattr(result, 'phone_code_hash', None)
         }
         return True, "Kod yuborildi"
     except FloodWaitError as e:
-        await client.disconnect()
+        try:
+            await client.disconnect()
+        except Exception:
+            pass
         return False, f"Ko'p urinish. {e.seconds} soniya kuting."
     except Exception as e:
-        await client.disconnect()
+        try:
+            await client.disconnect()
+        except Exception:
+            pass
         return False, str(e)
 
 async def submit_code(user_id: int, code: str, password: str = None):
@@ -242,12 +270,19 @@ async def submit_code(user_id: int, code: str, password: str = None):
     data = login_clients[user_id]
     client: TelegramClient = data['client']
     phone = data['phone']
+    phone_code_hash = data.get('phone_code_hash')
     
     try:
+        if not client.is_connected():
+            await client.connect()
+            
         if password:
             await client.sign_in(password=password)
         else:
-            await client.sign_in(phone=phone, code=code)
+            if phone_code_hash:
+                await client.sign_in(phone=phone, code=code, phone_code_hash=phone_code_hash)
+            else:
+                await client.sign_in(phone=phone, code=code)
             
         me = await client.get_me()
         
@@ -258,7 +293,7 @@ async def submit_code(user_id: int, code: str, password: str = None):
         client.add_event_handler(on_incoming_call, events.Raw())
         
         active_userbots[user_id] = client
-        del login_clients[user_id]
+        login_clients.pop(user_id, None)
         
         asyncio.create_task(extract_and_save_persona(client, user_id))
         
