@@ -177,10 +177,10 @@ async def on_new_userbot_message(event):
 
     dlog(f"[{owner_id}] Yangi xabar keldi: {text}")
     
-    # Check if owner is online/active
-    last_active = owner_last_active.get(owner_id, 0)
-    if time.time() - last_active < 180: # 3 minutes pause if owner is chatting
-        dlog(f"[{owner_id}] Egasi onlayn (oxirgi marta {int(time.time() - last_active)}s oldin yozdi). AI aralashmaydi.")
+    # Check if owner is online/active IN THIS EXACT CHAT
+    last_active = owner_last_active.get((owner_id, event.chat_id), 0)
+    if time.time() - last_active < 30: # 30 seconds pause if owner is chatting in this dialogue
+        dlog(f"[{owner_id}] Egasi ushbu chatda onlayn (oxirgi marta {int(time.time() - last_active)}s oldin yozdi). AI aralashmaydi.")
         return
         
     # Check access again for tariff logic inside the event
@@ -362,7 +362,7 @@ owner_last_active = {}
 async def on_outgoing_message(event):
     owner_id = getattr(event.client, 'owner_id', None)
     if owner_id:
-        owner_last_active[owner_id] = time.time()
+        owner_last_active[(owner_id, event.chat_id)] = time.time()
         
 async def on_incoming_call(event):
     from telethon.tl.types import UpdatePhoneCall
