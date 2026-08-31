@@ -1060,10 +1060,27 @@ async def main():
 
     if os.environ.get("VERCEL") or os.environ.get("USERBOTS_ONLY"):
         print("🤖 USERBOT WORKER MODE: Polling ishga tushirilmadi (Faqat userbotlar ishlamoqda).")
+        # Render bepul Web Service uchun — HTTP port ochib turadi
+        port = int(os.environ.get("PORT", 8080))
+        try:
+            from aiohttp import web as aio_web
+            async def health(request):
+                return aio_web.Response(text="Bot ishlayapti OK")
+            _app = aio_web.Application()
+            _app.router.add_get("/", health)
+            _app.router.add_get("/health", health)
+            _runner = aio_web.AppRunner(_app)
+            await _runner.setup()
+            _site = aio_web.TCPSite(_runner, "0.0.0.0", port)
+            await _site.start()
+            print(f"🌐 Keep-alive HTTP server port {port} da ishga tushdi.")
+        except Exception as _e:
+            print(f"[HTTP Server] {_e}")
         while True:
             await asyncio.sleep(3600)
     else:
         await start_polling_loop()
+
 
 if __name__ == '__main__':
     try:
