@@ -52,7 +52,7 @@ GROUP_LINK = clean_env("GROUP_LINK", None)
 TARIFFS = {
     "standart": {
         "name": "STANDART TARIF",
-        "price": 50000,
+        "price": 15000,
         "duration": 30,
         "features": [
             "✅ AI orqali mijozlarga avtomatik javob",
@@ -63,14 +63,14 @@ TARIFFS = {
     },
     "smm": {
         "name": "SMM PRO TARIFI",
-        "price": 120000,
+        "price": 25000,
         "duration": 30,
         "features": [
-            "✅ Professional SMM va Target konsultatsiyasi",
-            "✅ Maxsus savdo skriptlari va takliflar",
-            "✅ Barcha savollarga batafsil va moslashuvchan javob",
-            "✅ Chegirmalar va aksiyalar taqdimoti",
-            "⚡ Ustuvor (tezkor) AI javob"
+            "✅ STANDART tarifidagi barcha imkoniyatlar",
+            "🎙 Ovozli xabarlarga ovoz bilan javob berish (Audio)",
+            "🗣 O'zbekcha tabiiy ovoz (Edge TTS)",
+            "📊 Reklama va SMM yuborish statistikasi",
+            "⚡ 24/7 VIP tezkor javob"
         ]
     }
 }

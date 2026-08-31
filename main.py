@@ -69,8 +69,8 @@ def get_main_menu():
 # ============ INLINE TUGMALAR (CALLBACKS) ============
 def get_tariffs_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="⭐ Standart (50 000 so'm)", callback_data="buy_standart")],
-        [InlineKeyboardButton(text="🚀 SMM Pro (120 000 so'm)", callback_data="buy_smm")],
+        [InlineKeyboardButton(text="⭐ Standart (15 000 so'm)", callback_data="buy_standart")],
+        [InlineKeyboardButton(text="🚀 SMM Pro (25 000 so'm)", callback_data="buy_smm")],
         [InlineKeyboardButton(text="🔙 Yopish", callback_data="close_menu")]
     ])
 
@@ -570,7 +570,21 @@ async def btn_link_profile(message: types.Message, state: FSMContext):
     has_access, status_text, days_left, tariff = await check_user_access(user_id)
     
     if not has_access:
-        await message.answer("Sizning tarifingiz tugagan. Profilni ulash uchun <b>💳 Tariflar</b> bo'limidan to'lov qiling.")
+        text = f"""⚠️ <b>Sinov muddatingiz yoki tarifingiz tugagan!</b>
+
+AI yordamchisidan foydalanish va profilingizni ulash uchun quyidagi tariflardan birini tanlang:
+
+📌 <b>1. STANDART TARIF</b> — <code>{TARIFFS['standart']['price']:,} so'm/oy</code> (15 000 so'm)
+• 24/7 AI mijozlarga avtomatik matnli javob
+• Savdo, xizmatlar va mahsulotlar tavsifi
+
+🚀 <b>2. SMM PRO TARIFI</b> — <code>{TARIFFS['smm']['price']:,} so'm/oy</code> (25 000 so'm)
+• STANDART tarifidagi barcha imkoniyatlar
+• 🎙 Ovozli xabarlarga ovoz bilan javob berish (Audio)
+• 📊 SMM va reklama yuborish statistikasi
+
+<i>To'lov qilish uchun pastdagi kerakli tarif tugmasini bosing:</i>"""
+        await message.answer(text, reply_markup=get_tariffs_keyboard())
         return
         
     await message.answer("📱 <b>Telegram raqamingizni kiriting yoxud pastdagi tugmani bosing:</b>\n<i>Format: +998901234567</i>", reply_markup=get_contact_keyboard())
