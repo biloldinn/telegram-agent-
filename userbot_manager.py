@@ -189,7 +189,6 @@ async def on_new_userbot_message(event):
     sender_name = getattr(sender, 'first_name', 'Mijoz') or 'Mijoz'
     
     async with event.client.action(event.chat_id, 'typing'):
-        await asyncio.sleep(1.5)
         reply = await get_ai_reply(text, owner_id, user_info, sender_name, tariff)
         
     dlog(f"[{owner_id}] AI javobi: {reply}")
