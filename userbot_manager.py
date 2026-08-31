@@ -14,8 +14,8 @@ from groq import AsyncGroq
 from config import GROQ_API_KEY, GROQ_API_KEY_BACKUP
 import os
 
-API_ID = 2040
-API_HASH = "b18441a1ff607e10a989891a5462e627"
+API_ID = 6
+API_HASH = "eb066357ef23a52b2c842d03222b5614"
 
 groq_client = AsyncGroq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 groq_backup_client = AsyncGroq(api_key=GROQ_API_KEY_BACKUP) if GROQ_API_KEY_BACKUP else None
@@ -66,7 +66,7 @@ SUHBAT TARIXI (Ushbu mijoz bilan):
     if groq_client:
         try:
             resp = await groq_client.chat.completions.create(
-                model="openai/gpt-oss-20b",
+                model="llama-3.1-70b-versatile",
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": text}
@@ -82,7 +82,7 @@ SUHBAT TARIXI (Ushbu mijoz bilan):
     if groq_backup_client:
         try:
             resp = await groq_backup_client.chat.completions.create(
-                model="openai/gpt-oss-20b",
+                model="llama-3.1-70b-versatile",
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": text}
@@ -383,7 +383,7 @@ async def extract_and_save_persona(client, user_id):
             prompt = f"Quyida foydalanuvchining haqiqiy yozishmalari keltirilgan:\n{corpus}\n\nUning gapirish uslubi, so'z boyligi, xarakterini tahlil qiling va qisqacha System Prompt yozing (Masalan: 'Sizning uslubingiz qisqa, hazilkash va samimiy. Siz odatda ... so'zlarini ishlatasiz')."
             
             resp = await groq_client.chat.completions.create(
-                model="openai/gpt-oss-20b",
+                model="llama-3.1-70b-versatile",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.3,
                 max_tokens=200

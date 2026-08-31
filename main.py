@@ -377,76 +377,7 @@ async def cb_close(callback: CallbackQuery):
 async def cb_ignore(callback: CallbackQuery):
     await callback.answer()
 
-# ============ ADMIN BUYRUQLARI ============
-def get_admin_keyboard():
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="📊 Statistika", callback_data="admin_stats")],
-        [InlineKeyboardButton(text="⏳ Kutilayotgan To'lovlar", callback_data="admin_payments")],
-        [InlineKeyboardButton(text="📢 Xabar yuborish", callback_data="admin_broadcast")],
-        [InlineKeyboardButton(text="🔙 Yopish", callback_data="close_menu")]
-    ])
-
-@dp.message(Command("admin"))
-async def cmd_admin(message: types.Message):
-    if message.from_user.id != ADMIN_ID:
-        return
-    await message.answer("👑 <b>PREMIUM ADMIN PANEL</b>\n\nKerakli bo'limni tanlang:", reply_markup=get_admin_keyboard())
-
-@dp.callback_query(F.data == "admin_stats")
-async def cb_admin_stats(callback: CallbackQuery):
-    s = await get_stats()
-    await callback.message.edit_text(f"""📊 <b>LOYIHA STATISTIKASI:</b>\n
-👥 Jami foydalanuvchilar: <b>{s['total_users']} ta</b>
-🟢 Faol a'zolar: <b>{s['active_users']} ta</b>
-💰 Jami daromad: <b>{s['total_amount']:,} so'm</b>
-📨 Tasdiqlangan to'lovlar: <b>{s['total_payments']} ta</b>
-⏳ Kutilayotgan to'lovlar: <b>{s['pending_payments']} ta</b>
-💬 AI Xabarlar soni: <b>{s['total_messages']} ta</b>""", reply_markup=get_admin_keyboard())
-
-@dp.callback_query(F.data == "admin_payments")
-async def cb_admin_payments(callback: CallbackQuery):
-    payments = await get_pending_payments()
-    if not payments:
-        await callback.message.edit_text("📭 Kutilayotgan to'lovlar yo'q.", reply_markup=get_admin_keyboard())
-        return
-    msg = "⏳ <b>KUTILAYOTGAN TO'LOVLAR:</b>\n\n"
-    for p in payments:
-        msg += f"🆔 <code>#{p['id']}</code> | ID: <code>{p['user_id']}</code>\n📦 {p['tariff_type']} - <b>{p['amount']:,} so'm</b>\n"
-        msg += f"👉 Tasdiqlash: /approve_{p['id']} | Rad: /reject_{p['id']}\n\n"
-    await callback.message.edit_text(msg, reply_markup=get_admin_keyboard())
-
-@dp.callback_query(F.data == "admin_broadcast")
-async def cb_admin_broadcast(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("📢 <b>Barcha mijozlarga yuboriladigan xabar matnini kiriting:</b>", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Bekor qilish", callback_data="admin_cancel_broadcast")]]))
-    await state.set_state(LoginState.waiting_for_broadcast)
-
-@dp.callback_query(F.data == "admin_cancel_broadcast")
-async def cb_admin_cancel_broadcast(callback: CallbackQuery, state: FSMContext):
-    await state.clear()
-    await callback.message.edit_text("👑 <b>PREMIUM ADMIN PANEL</b>", reply_markup=get_admin_keyboard())
-
-@dp.message(LoginState.waiting_for_broadcast)
-async def process_broadcast(message: types.Message, state: FSMContext):
-    if message.from_user.id != ADMIN_ID: return
-    msg = message.html_text
-    cursor = users_col.find({})
-    users = await cursor.to_list(length=5000)
-    sent = 0
-    await message.answer("⏳ <i>Xabar yuborilmoqda...</i>")
-    for u in users:
-        try:
-            await bot.send_message(u['user_id'], f"📢 <b>YANGILIK:</b>\n\n{msg}")
-            sent += 1
-            import asyncio
-            await asyncio.sleep(0.05)
-        except:
-            pass
-    await message.answer(f"✅ Xabar muvaffaqiyatli {sent} ta foydalanuvchiga yuborildi!", reply_markup=get_admin_keyboard())
-    await state.clear()
-
-
-@dp.message(Command("payments"))
-async def cmd_payments(message: types.Message):
+# (Old duplicate admin handlers removed to fix conflict with correct ones below)
     if message.from_user.id != ADMIN_ID:
         return
     payments = await get_pending_payments()
