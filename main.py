@@ -1045,7 +1045,12 @@ async def main():
     # Orqa fonda avtomatik eslatma cronini yoqish
     asyncio.create_task(check_expired_trials_cron())
 
-    await start_polling_loop()
+    if os.environ.get("VERCEL") or os.environ.get("USERBOTS_ONLY"):
+        print("🤖 USERBOT WORKER MODE: Polling ishga tushirilmadi (Faqat userbotlar ishlamoqda).")
+        while True:
+            await asyncio.sleep(3600)
+    else:
+        await start_polling_loop()
 
 if __name__ == '__main__':
     try:
