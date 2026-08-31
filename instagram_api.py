@@ -1,14 +1,31 @@
-﻿import os
+import os
 import aiohttp
 import asyncio
 from aiohttp import web
-from config import META_APP_ID, META_APP_SECRET, WEBHOOK_VERIFY_TOKEN, WEBHOOK_URL, ADMIN_ID
-import httpx`nimport os`nfrom config import GROQ_API_KEY
+import httpx
+from config import META_APP_ID, META_APP_SECRET, WEBHOOK_VERIFY_TOKEN, WEBHOOK_URL, ADMIN_ID, GROQ_API_KEY
 from database import users_col, get_user
 import json
 
 routes = web.RouteTableDef()
 bot = None
+
+async def generate_groq_response(prompt: str, system_prompt: str) -> str:
+    url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
+    payload = {
+        "model": "llama-3.1-70b-versatile",
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt}
+        ]
+    }
+    async with aiohttp.ClientSession() as session:
+        async with session.post(url, headers=headers, json=payload) as resp:
+            data = await resp.json()
+            if "choices" in data:
+                return data["choices"][0]["message"]["content"]
+    return "Xatolik yuz berdi."
 
 @routes.get('/webhook')
 async def verify_webhook(request):
@@ -40,7 +57,10 @@ async def handle_webhook(request):
                                 user = await users_col.find_one({"instagram_account_id": recipient_id})
                                 if user and user.get("ai_enabled", 1) == 1:
                                     telegram_user_id = user["user_id"]
-                                    reply_text = await generate_groq_response(message_text, "Sen SMM va biznes menejersan. Qisqa va samimiy javob ber.")
+                                    user_data = await get_user(telegram_user_id)
+                                    persona = user_data.get('business_persona', '')
+                                    system_prompt = f"Sen kompaniyaning menejerisan. Kompaniya haqida: {persona}\nQoidalar: Qisqa va samimiy javob ber."
+                                    reply_text = await generate_groq_response(message_text, system_prompt)
                                     await send_instagram_message(user.get("instagram_token"), sender_id, reply_text)
                 
                 # Check Comments
@@ -56,14 +76,11 @@ async def handle_webhook(request):
                                 user = await users_col.find_one({"instagram_account_id": recipient_id})
                                 if user and user.get("ai_enabled", 1) == 1:
                                     telegram_user_id = user["user_id"]
-                                    
-                                    
                                     user_data = await get_user(telegram_user_id)
                                     persona = user_data.get('business_persona', '')
                                     
                                     system_prompt = f"Sen kompaniyaning menejerisan. Kompaniya haqida: {persona}\nQoidalar: Instagramdagi izohga (comment) juda qisqa, samimiy javob yoz. Mijozni 'Siz' deb hurmat bilan chaqir."
                                     reply_text = await generate_groq_response(comment_text, system_prompt)
-                                    
                                     await reply_to_instagram_comment(user.get("instagram_token"), comment_id, reply_text)
                                     
                                     dm_prompt = f"Sen menejersan. Kompaniya: {persona}\nQoida: Izoh qoldirgan mijozning shaxsiy lichkasiga o'tib, unga ma'lumot va narxlarni taklif qil."
@@ -146,18 +163,17 @@ async def facebook_oauth_callback(request):
                                         page_token = pt
                                         break
                                         
-                                                if ig_account_id and page_token:
-                            # ANTI-FRAUD: Check if this IG account is already linked to ANOTHER Telegram user
+                        if ig_account_id and page_token:
                             existing_ig = await users_col.find_one({"instagram_account_id": ig_account_id, "user_id": {"$ne": user_id}})
                             if existing_ig:
-                                return web.Response(text="❌ XATOLIK: Ushbu Instagram profil allaqachon boshqa Telegram akkauntga ulangan! Bepul sinov muddatini (nayrang bilan) qayta ishlatish taqiqlanadi. Iltimos, o'z profilingizdan tarif xarid qiling.", content_type="text/html")
+                                return web.Response(text="❌ XATOLIK: Ushbu Instagram profil allaqachon boshqa Telegram akkauntga ulangan! Bepul sinov muddatini qayta ishlatish taqiqlanadi.", content_type="text/html")
                             
                             await users_col.update_one(
                                 {"user_id": user_id},
                                 {"$set": {"instagram_token": page_token, "instagram_account_id": ig_account_id, "ai_enabled": 1}}
                             )
                             if bot:
-                                await bot.send_message(user_id, "вњ… <b>Instagram akkauntingiz ulandi!</b>\nEndi AI Instagram Direct va Kommentariyalarga javob beradi!")
+                                await bot.send_message(user_id, "✅ <b>Instagram akkauntingiz ulandi!</b>\nEndi AI Instagram Direct va Kommentariyalarga javob beradi!")
                             return web.Response(text="Muvaffaqiyatli ulandi! Telegram botga qaytishingiz mumkin.", content_type="text/html")
                         else:
                             return web.Response(text="Xatolik: Facebook sahifangizga ulangan Instagram Professional akkaunt topilmadi.")
@@ -175,22 +191,4 @@ async def start_web_server(b):
     await runner.setup()
     site = web.TCPSite(runner, "0.0.0.0", port)
     await site.start()
-    print(f"вњ… Web server started on port {port}")
-
-async def generate_groq_response(prompt: str, system_prompt: str) -> str:
-    url = "https://api.groq.com/openai/v1/chat/completions"
-    headers = {"Authorization": f"Bearer {GROQ_API_KEY}", "Content-Type": "application/json"}
-    payload = {
-        "model": "llama-3.1-70b-versatile",
-        "messages": [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": prompt}
-        ]
-    }
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, headers=headers, json=payload) as resp:
-            data = await resp.json()
-            if "choices" in data:
-                return data["choices"][0]["message"]["content"]
-    return "Xatolik yuz berdi."
-
+    print(f"✅ Web server started on port {port}")
