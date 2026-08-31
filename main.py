@@ -603,35 +603,49 @@ AI yordamchisidan foydalanish va profilingizni ulash uchun quyidagi tariflardan 
     await message.answer("📱 <b>Telegram raqamingizni kiriting yoxud pastdagi tugmani bosing:</b>\n<i>Format: +998901234567</i>", reply_markup=get_contact_keyboard())
     await state.set_state(LoginState.waiting_for_phone)
 
+def normalize_phone(phone_input: str) -> str:
+    import re
+    digits = re.sub(r'\D', '', str(phone_input or ''))
+    if not digits:
+        return ""
+    if len(digits) == 9:
+        return f"+998{digits}"
+    elif len(digits) == 12 and digits.startswith("998"):
+        return f"+{digits}"
+    else:
+        return f"+{digits}"
+
 @dp.message(LoginState.waiting_for_phone)
 async def process_phone(message: types.Message, state: FSMContext):
-    if message.text == '🔙 Bekor qilish':
+    if message.text in ['🔙 Bekor qilish', '/cancel', 'cancel']:
         await state.clear()
         await message.answer('Bekor qilindi.', reply_markup=get_main_menu())
         return
-    phone = message.contact.phone_number if message.contact else message.text
-    if not phone:
+    raw_phone = message.contact.phone_number if message.contact else message.text
+    if not raw_phone:
         return
         
-    phone = phone.replace(" ", "").replace("+", "")
-    if not phone.startswith("+"):
-        phone = "+" + phone
+    phone = normalize_phone(raw_phone)
+    if not phone or len(phone) < 10:
+        await message.answer("❌ <b>Telefon raqam noto'g'ri kiritildi!</b>\n\nIltimos, qaytadan kiriting (Masalan: <code>+998901234567</code> yoki <code>901234567</code>):")
+        return
         
-    await message.answer("⏳ <i>Kutib turing, ulanish so'ralmoqda...</i>")
+    await message.answer(f"⏳ <i>Kutib turing, Telegram'dan tasdiqlash bodi so'ralmoqda (Raqam: <code>{phone}</code>)...</i>")
     
-    success, result = await request_code(message.from_user.id, phone) # Fix param order
+    success, result = await request_code(message.from_user.id, phone)
     if success:
         await state.update_data(phone=phone)
         await state.set_state(LoginState.waiting_for_code)
         await message.answer(
-            "🔐 <b>TELEGRAM TASDIQLASH KODI YUBORILDI!</b>\n\n"
-            "Iltimos, rasmiy <b>Telegram</b> xabariga kelgan 5 xonali kodni kiriting:\n"
+            f"🔐 <b>TELEGRAM TASDIQLASH KODI YUBORILDI!</b>\n\n"
+            f"📱 Raqam: <code>{phone}</code>\n\n"
+            "Iltimos, rasmiy <b>Telegram</b> ilovangizga (rasmiy Telegram xabarlariga) kelgan 5 xonali kodni kiriting:\n"
             "• Qanday yozsangiz ham qabul qilinadi: <code>32222</code> yoki <code>3 2 2 2 2</code>\n"
             "• Yoki xabarni to'g'ridan-to'g'ri forward qiling!",
             reply_markup=types.ReplyKeyboardRemove()
         )
     else:
-        await message.answer(f"❌ Xatolik yuz berdi: {result}\n\nIltimos, raqam to'g'riligini tekshiring va qayta urinib ko'ring.", reply_markup=get_main_menu())
+        await message.answer(f"❌ <b>Xatolik yuz berdi:</b>\n<code>{result}</code>\n\nIltimos, raqam to'g'riligini tekshiring va qayta urinib ko'ring.", reply_markup=get_main_menu())
         await state.clear()
 
 @dp.message(LoginState.waiting_for_code)

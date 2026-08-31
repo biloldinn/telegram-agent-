@@ -246,8 +246,18 @@ async def request_code(user_id: int, phone: str):
             except Exception:
                 pass
 
-    os.makedirs("sessions", exist_ok=True)
-    client = TelegramClient(session_path, API_ID, API_HASH)
+    # StringSession — xotirada, fayllarsiz ishlaydi
+    session = StringSession("")
+    client = TelegramClient(
+        session,
+        API_ID,
+        API_HASH,
+        device_model="Samsung Galaxy S23",
+        system_version="Android 14",
+        app_version="10.8.1",
+        lang_code="uz",
+        system_lang_code="uz"
+    )
     
     try:
         # 15 soniya timeout bilan ulanish
@@ -281,6 +291,7 @@ async def request_code(user_id: int, phone: str):
             'phone_code_hash': getattr(result, 'phone_code_hash', None)
         }
         return True, "Kod yuborildi"
+
     except asyncio.TimeoutError:
         try:
             await client.disconnect()
@@ -449,12 +460,30 @@ async def load_active_userbots(users_cursor):
         
         # 1. MongoDB StringSession mavjud bo'lsa
         if session_str:
-            client = TelegramClient(StringSession(session_str), API_ID, API_HASH)
+            client = TelegramClient(
+                StringSession(session_str),
+                API_ID,
+                API_HASH,
+                device_model="Samsung Galaxy S23",
+                system_version="Android 14",
+                app_version="10.8.1",
+                lang_code="uz",
+                system_lang_code="uz"
+            )
         else:
             # 2. Eskicha lokal session fayli bo'lsa (Migratsiya)
             session_path = f"sessions/{user_id}.session"
             if os.path.exists(session_path):
-                client = TelegramClient(f"sessions/{user_id}", API_ID, API_HASH)
+                client = TelegramClient(
+                    f"sessions/{user_id}",
+                    API_ID,
+                    API_HASH,
+                    device_model="Samsung Galaxy S23",
+                    system_version="Android 14",
+                    app_version="10.8.1",
+                    lang_code="uz",
+                    system_lang_code="uz"
+                )
 
         if client:
             try:
