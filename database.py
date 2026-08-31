@@ -1,4 +1,4 @@
-import sys
+﻿import sys
 import os
 
 # Windows UTF-8 encoding fix
@@ -86,7 +86,7 @@ async def add_user(user_id: int, username: str, full_name: str, referrer_id: int
                             from main import bot
                             await bot.send_message(
                                 referrer_id,
-                                f"🎉 <b>TABRIKLAYMIZ!</b> Siz 5 ta yangi do'stingizni taklif qildingiz va tarifingizga <b>+1 KUN BONUS</b> qo'shildi!"
+                                f"рџЋ‰ <b>TABRIKLAYMIZ!</b> Siz 5 ta yangi do'stingizni taklif qildingiz va tarifingizga <b>+1 KUN BONUS</b> qo'shildi!"
                             )
                         except Exception:
                             pass
@@ -298,3 +298,4 @@ async def update_settings(standard_price=None, smm_price=None):
         update_data['smm_price'] = smm_price
     if update_data:
         await settings_col.update_one({'_id': 'global_settings'}, {'$set': update_data}, upsert=True)
+

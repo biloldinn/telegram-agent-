@@ -18,7 +18,7 @@ def clean_int(key, default=0):
 
 # Default Cloud Fallbacks
 _DEFAULT_MONGO = "mongodb+srv://" + "youtouberich_db_user:" + "bilol006@" + "cluster0.qlyes3u.mongodb.net/?appName=Cluster0"
-_DEFAULT_BOT_TOKEN = "8628078562:AAET1DSQP32HpdzeE0cT_7fNg786CdOE9U0"
+_DEFAULT_BOT_TOKEN = "8771708168:AAEiSDIfcPR2c1ejQNVpuTzHsKgZp-dIDeU"
 _DEFAULT_G1 = "gsk_" + "p8EKYsBpkJdWUAO4yRnF" + "WGdyb3FY3KyQPjfB3tMpSIJ6edjIntcN"
 _DEFAULT_G2 = "gsk_" + "aOoB0oc5EQlAlHFJLd0T" + "WGdyb3FY4onFxK9OW3m2y6as4sPc7Iz7"
 _DEFAULT_GEM = "AQ." + "Ab8RN6JM2dwZeXBaF3pl" + "IMey0sf6QlcxEqWOe5F4CLAoRsEHRQ"
