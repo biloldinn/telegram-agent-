@@ -405,18 +405,26 @@ async def on_incoming_call(event):
 async def load_active_userbots(users_cursor):
     """Bot qayta yonganda barcha aktiv userbotlarni ishga tushirish"""
     print("Userbotlar tekshirilmoqda...")
-    users = await users_cursor.to_list(length=1000)
+    try:
+        users = await users_cursor.to_list(length=1000)
+    except Exception as e:
+        print(f"[load_active_userbots] DB Cursor Error: {e}")
+        return
+
     for u in users:
-        user_id = u['user_id']
+        user_id = u.get('user_id')
+        if not user_id:
+            continue
         session_path = f"sessions/{user_id}.session"
         if os.path.exists(session_path):
             try:
                 has_access, _, _, _ = await check_user_access(user_id)
                 if has_access and u.get("ai_enabled", 1):
-                    user_api_id = 2040
-                    user_api_hash = 'b18441a1ff607e10a989891a5462e627'
-                    client = TelegramClient(f"sessions/{user_id}", user_api_id, user_api_hash)
-                    await client.connect()
+                    client = TelegramClient(f"sessions/{user_id}", API_ID, API_HASH)
+                    try:
+                        await asyncio.wait_for(client.connect(), timeout=3.0)
+                    except Exception:
+                        continue
                     if await client.is_user_authorized():
                         client.owner_id = user_id
                         client.add_event_handler(on_new_userbot_message, events.NewMessage(incoming=True))
