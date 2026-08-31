@@ -529,7 +529,7 @@ async def btn_link_instagram(message: types.Message):
         return
 
     from config import META_APP_ID, WEBHOOK_URL
-    oauth_url = f"https://www.facebook.com/v19.0/dialog/oauth?client_id={META_APP_ID}&display=page&extras={{"setup":{{"channel":"IG_API"}}}}&redirect_uri={WEBHOOK_URL}/oauth&response_type=code&scope=instagram_business_basic%2Cinstagram_business_manage_messages%2Cinstagram_business_manage_comments%2Cpages_manage_metadata%2Cpages_show_list%2Cpages_messaging&state={user_id}"
+    oauth_url = f"https://www.facebook.com/v19.0/dialog/oauth?client_id={META_APP_ID}&display=page&redirect_uri={WEBHOOK_URL}/oauth&response_type=code&scope=instagram_business_basic%2Cinstagram_business_manage_messages%2Cinstagram_business_manage_comments%2Cpages_manage_metadata%2Cpages_show_list%2Cpages_messaging&state={user_id}"
     
     markup = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🌐 Instagramni Ulaşh (Rasmiy)", url=oauth_url)]
@@ -1090,6 +1090,7 @@ if __name__ == '__main__':
         print("\nBot to'xtatildi!")
     except Exception as e:
         print(f"\nXatolik: {e}")
+
 
 
 
