@@ -1,4 +1,4 @@
-import os
+﻿import os
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,7 +18,7 @@ def clean_int(key, default=0):
 
 # Default Cloud Fallbacks
 _DEFAULT_MONGO = "mongodb+srv://" + "youtouberich_db_user:" + "bilol006@" + "cluster0.qlyes3u.mongodb.net/?appName=Cluster0"
-_DEFAULT_BOT_TOKEN = "8771708168:AAEiSDIfcPR2c1ejQNVpuTzHsKgZp-dIDeU"
+_DEFAULT_BOT_TOKEN = "8832220989:AAFFADtNwFfXrnJn_selYswp06-m2uETXgk"
 _DEFAULT_G1 = "gsk_" + "p8EKYsBpkJdWUAO4yRnF" + "WGdyb3FY3KyQPjfB3tMpSIJ6edjIntcN"
 _DEFAULT_G2 = "gsk_" + "aOoB0oc5EQlAlHFJLd0T" + "WGdyb3FY4onFxK9OW3m2y6as4sPc7Iz7"
 _DEFAULT_GEM = "AQ." + "Ab8RN6JM2dwZeXBaF3pl" + "IMey0sf6QlcxEqWOe5F4CLAoRsEHRQ"
@@ -55,10 +55,10 @@ TARIFFS = {
         "price": 15000,
         "duration": 30,
         "features": [
-            "✅ AI orqali mijozlarga avtomatik javob",
-            "✅ Xizmatlar va mahsulotlar haqida ma'lumot",
-            "✅ Narxlar va buyurtma olish",
-            "⚡ 24/7 uzluksiz javob"
+            "вњ… AI orqali mijozlarga avtomatik javob",
+            "вњ… Xizmatlar va mahsulotlar haqida ma'lumot",
+            "вњ… Narxlar va buyurtma olish",
+            "вљЎ 24/7 uzluksiz javob"
         ]
     },
     "smm": {
@@ -66,11 +66,12 @@ TARIFFS = {
         "price": 25000,
         "duration": 30,
         "features": [
-            "✅ STANDART tarifidagi barcha imkoniyatlar",
-            "🎙 Ovozli xabarlarga ovoz bilan javob berish (Audio)",
-            "🗣 O'zbekcha tabiiy ovoz (Edge TTS)",
-            "📊 Reklama va SMM yuborish statistikasi",
-            "⚡ 24/7 VIP tezkor javob"
+            "вњ… STANDART tarifidagi barcha imkoniyatlar",
+            "рџЋ™ Ovozli xabarlarga ovoz bilan javob berish (Audio)",
+            "рџ—Ј O'zbekcha tabiiy ovoz (Edge TTS)",
+            "рџ“Љ Reklama va SMM yuborish statistikasi",
+            "вљЎ 24/7 VIP tezkor javob"
         ]
     }
 }
+
