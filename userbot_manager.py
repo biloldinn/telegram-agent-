@@ -25,6 +25,9 @@ active_userbots = {}
 # Log in jarayonidagi mijozlar
 login_clients = {}
 
+import time
+owner_last_active = {}
+
 async def get_ai_reply(text: str, user_id: int, user_info: dict, sender_name: str, tariff: str, chat_id: int = None) -> str:
     has_access, status, days, tariff = await check_user_access(user_id)
     if not has_access:
