@@ -18,7 +18,7 @@ def clean_int(key, default=0):
 
 # Default Cloud Fallbacks
 _DEFAULT_MONGO = "mongodb+srv://" + "youtouberich_db_user:" + "bilol006@" + "cluster0.qlyes3u.mongodb.net/?appName=Cluster0"
-_DEFAULT_BOT_TOKEN = "8832220989:AAFFADtNwFfXrnJn_selYswp06-m2uETXgk"
+_DEFAULT_BOT_TOKEN = "8960313959:AAHdR44rmqcTS1PfkmzUBOf0Tb23vKFvC0Y"
 _DEFAULT_G1 = "gsk_" + "p8EKYsBpkJdWUAO4yRnF" + "WGdyb3FY3KyQPjfB3tMpSIJ6edjIntcN"
 _DEFAULT_G2 = "gsk_" + "aOoB0oc5EQlAlHFJLd0T" + "WGdyb3FY4onFxK9OW3m2y6as4sPc7Iz7"
 _DEFAULT_GEM = "AQ." + "Ab8RN6JM2dwZeXBaF3pl" + "IMey0sf6QlcxEqWOe5F4CLAoRsEHRQ"
@@ -81,3 +81,4 @@ META_APP_ID = os.environ.get("META_APP_ID", "2151617639105830")
 META_APP_SECRET = os.environ.get("META_APP_SECRET", "e82d9f9878f49e009f5412fcc7f9ebbe")
 WEBHOOK_VERIFY_TOKEN = os.environ.get("WEBHOOK_VERIFY_TOKEN", "agentai_webhook_secret")
 WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "https://your-railway-url.up.railway.app")
+
