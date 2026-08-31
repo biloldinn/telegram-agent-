@@ -191,15 +191,28 @@ async def cmd_start(message: types.Message):
     is_new = await add_user(user_id, username, full_name)
     has_access, status_text, days_left, tariff = await check_user_access(user_id)
 
-    welcome_text = f"""Assalomu alaykum, <b>{full_name}</b>! 👋
-SMM AI Agent platformasiga xush kelibsiz!
+    if is_new:
+        # Yangi foydalanuvchi — trial xabari
+        welcome_text = f"""Assalomu alaykum, <b>{full_name}</b>! 👋
+SMM AI Agent platformasiga xush kelibsiz! 🎉
 
-🎁 Sizga <b>3 KUNLIK BEPUL SINOV MUDDATI</b> taqdim etildi.
+🎁 Sizga <b>3 KUNLIK BEPUL SINOV MUDDATI</b> taqdim etildi!
 📊 Holat: <i>{status_text}</i>
 
-Men sizning shaxsiy Telegram profilingizni aqlli <b>Avto-Javob beruvchi Sotuv Menejeriga</b> aylantirib beraman. Mijozlaringizga sizning o'rningizga toza O'zbek tilida, matn va hatto 🎙 Ovozli xabar orqali javob beraman!
+Men sizning shaxsiy Telegram profilingizni aqlli <b>Avto-Javob beruvchi Sotuv Menejeriga</b> aylantirib beraman. Mijozlaringizga sizning o'rningizda toza O'zbek tilida, matn va hatto 🎙 Ovozli xabar orqali javob beraman!
 
 👇 <i>Profilni ulash va sozlash uchun menyudan foydalaning:</i>"""
+    else:
+        # Qaytib kelgan foydalanuvchi — holat xabari
+        if has_access:
+            holat_emoji = "✅"
+        else:
+            holat_emoji = "⚠️"
+        welcome_text = f"""Xush kelibsiz, <b>{full_name}</b>! 👋
+
+{holat_emoji} Tarif holati: <i>{status_text}</i>
+
+👇 <i>Menyudan kerakli bo'limni tanlang:</i>"""
 
     await message.answer(welcome_text, reply_markup=get_main_menu())
 
