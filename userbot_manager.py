@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
 
@@ -174,7 +174,7 @@ async def on_new_userbot_message(event):
             try:
                 await bot.send_message(
                     owner_id,
-                    "вљ пёЏ <b>Diqqat!</b>\n\nSizning 3 kunlik sinov muddatingiz yoki tarifingiz o'z nihoyasiga yetdi. AI avtomatik ravishda to'xtatildi.\n\nIltimos, AI xizmatidan uzluksiz foydalanish uchun <b>рџ’і Tariflar</b> bo'limidan mos tarifni xarid qiling!"
+                    "⚠️ <b>Diqqat!</b>\n\nSizning 3 kunlik sinov muddatingiz yoki tarifingiz o'z nihoyasiga yetdi. AI avtomatik ravishda to'xtatildi.\n\nIltimos, AI xizmatidan uzluksiz foydalanish uchun <b>💳 Tariflar</b> bo'limidan mos tarifni xarid qiling!"
                 )
                 await users_col.update_one({'user_id': owner_id}, {'$set': {'expired_notified': True}})
             except Exception:
@@ -249,7 +249,7 @@ async def request_code(user_id: int, phone: str):
             except Exception:
                 pass
 
-    # StringSession вЂ” xotirada, fayllarsiz ishlaydi
+    # StringSession — xotirada, fayllarsiz ishlaydi
     session = StringSession("")
     client = TelegramClient(
         session, 
@@ -368,8 +368,9 @@ async def submit_code(user_id: int, code: str, password: str = None):
 
 async def extract_and_save_persona(client, user_id):
     try:
-        # Xavfsizlik uchun ulanishdan so'ng biroz kutamiz (Ban olmaslik uchun)
-        await asyncio.sleep(5)
+        # Xavfsizlik uchun ulanishdan so'ng 2 daqiqa kutamiz (Ban olmaslik uchun)
+        # Login va darhol ma'lumot tortishni Telegram yomon ko'radi
+        await asyncio.sleep(120)
         
         sample_messages = []
         dialogs = await client.get_dialogs(limit=10)
@@ -431,7 +432,7 @@ async def on_incoming_call(event):
             
         if caller_id and caller_id != owner_id:
             # Send message
-            await event.client.send_message(caller_id, "Hozircha qo'ng'iroqlarga javob bera olmayman рџ“µ\nIltimos, nima masala ekanligini yozma ravishda yoki ovozli xabar orqali qoldiring.")
+            await event.client.send_message(caller_id, "Hozircha qo'ng'iroqlarga javob bera olmayman 📵\nIltimos, nima masala ekanligini yozma ravishda yoki ovozli xabar orqali qoldiring.")
             dlog(f"[{owner_id}] Qong'iroqqa avtomatik javob yuborildi (Caller: {caller_id}).")
             
             # Reject call
@@ -520,5 +521,4 @@ async def load_active_userbots(users_cursor):
                         await client.disconnect()
             except Exception as e:
                 print(f"[Userbot] {user_id} xatolik: {e}")
-
 
