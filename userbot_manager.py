@@ -244,22 +244,32 @@ async def request_code(user_id: int, phone: str):
             except Exception:
                 pass
 
+    os.makedirs("sessions", exist_ok=True)
     client = TelegramClient(session_path, API_ID, API_HASH)
     
     try:
-        await client.connect()
-        retries = 0
-        while not client.is_connected() and retries < 5:
-            await asyncio.sleep(0.5)
-            await client.connect()
-            retries += 1
-            
+        # 15 soniya timeout bilan ulanish
+        await asyncio.wait_for(client.connect(), timeout=15.0)
+        
+        if not client.is_connected():
+            return False, "Telegram serveriga ulanib bo'lmadi. Qayta urinib ko'ring."
+
         try:
-            result = await client.send_code_request(phone)
+            # 20 soniya timeout bilan kod so'rash
+            result = await asyncio.wait_for(
+                client.send_code_request(phone),
+                timeout=20.0
+            )
+        except asyncio.TimeoutError:
+            await client.disconnect()
+            return False, "Telegram javob bermadi (timeout). Qayta urinib ko'ring."
         except Exception as e_req:
             if "AuthRestart" in str(e_req) or "restart" in str(e_req).lower():
                 await asyncio.sleep(1)
-                result = await client.send_code_request(phone)
+                result = await asyncio.wait_for(
+                    client.send_code_request(phone),
+                    timeout=20.0
+                )
             else:
                 raise e_req
 
@@ -269,6 +279,12 @@ async def request_code(user_id: int, phone: str):
             'phone_code_hash': getattr(result, 'phone_code_hash', None)
         }
         return True, "Kod yuborildi"
+    except asyncio.TimeoutError:
+        try:
+            await client.disconnect()
+        except Exception:
+            pass
+        return False, "Ulanish vaqti tugadi (timeout). Internet aloqangizni tekshiring."
     except FloodWaitError as e:
         try:
             await client.disconnect()
@@ -281,6 +297,7 @@ async def request_code(user_id: int, phone: str):
         except Exception:
             pass
         return False, str(e)
+
 
 async def submit_code(user_id: int, code: str, password: str = None):
     if user_id not in login_clients:
