@@ -14,8 +14,8 @@ from groq import AsyncGroq
 from config import GROQ_API_KEY, GROQ_API_KEY_BACKUP
 import os
 
-API_ID = 6
-API_HASH = "eb066357ef23a52b2c842d03222b5614"
+API_ID = 2040
+API_HASH = "b18441a1ff607e10a989891a5462e627"
 
 groq_client = AsyncGroq(api_key=GROQ_API_KEY) if GROQ_API_KEY else None
 groq_backup_client = AsyncGroq(api_key=GROQ_API_KEY_BACKUP) if GROQ_API_KEY_BACKUP else None
@@ -251,16 +251,7 @@ async def request_code(user_id: int, phone: str):
 
     # StringSession — xotirada, fayllarsiz ishlaydi
     session = StringSession("")
-    client = TelegramClient(
-        session,
-        API_ID,
-        API_HASH,
-        device_model="Samsung Galaxy S23",
-        system_version="Android 14",
-        app_version="10.8.1",
-        lang_code="uz",
-        system_lang_code="uz"
-    )
+    client = TelegramClient(session, API_ID, API_HASH)
     
     try:
         # 15 soniya timeout bilan ulanish
@@ -463,30 +454,12 @@ async def load_active_userbots(users_cursor):
         
         # 1. MongoDB StringSession mavjud bo'lsa
         if session_str:
-            client = TelegramClient(
-                StringSession(session_str),
-                API_ID,
-                API_HASH,
-                device_model="Samsung Galaxy S23",
-                system_version="Android 14",
-                app_version="10.8.1",
-                lang_code="uz",
-                system_lang_code="uz"
-            )
+            client = TelegramClient(StringSession(session_str), API_ID, API_HASH)
         else:
             # 2. Eskicha lokal session fayli bo'lsa (Migratsiya)
             session_path = f"sessions/{user_id}.session"
             if os.path.exists(session_path):
-                client = TelegramClient(
-                    f"sessions/{user_id}",
-                    API_ID,
-                    API_HASH,
-                    device_model="Samsung Galaxy S23",
-                    system_version="Android 14",
-                    app_version="10.8.1",
-                    lang_code="uz",
-                    system_lang_code="uz"
-                )
+                client = TelegramClient(f"sessions/{user_id}", API_ID, API_HASH)
 
         if client:
             try:
