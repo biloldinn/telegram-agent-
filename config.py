@@ -80,5 +80,6 @@ TARIFFS = {
 META_APP_ID = os.environ.get("META_APP_ID", "2151617639105830")
 META_APP_SECRET = os.environ.get("META_APP_SECRET", "e82d9f9878f49e009f5412fcc7f9ebbe")
 WEBHOOK_VERIFY_TOKEN = os.environ.get("WEBHOOK_VERIFY_TOKEN", "agentai_webhook_secret")
-WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "https://your-railway-url.up.railway.app")
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL", "https://gentle-energy-production-2234.up.railway.app")
+
 
