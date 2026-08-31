@@ -23,13 +23,13 @@ active_userbots = {}
 # Log in jarayonidagi mijozlar
 login_clients = {}
 
-async def get_ai_reply(text: str, user_id: int, user_info: dict, sender_name: str, tariff: str) -> str:
+async def get_ai_reply(text: str, user_id: int, user_info: dict, sender_name: str, tariff: str, chat_id: int = None) -> str:
     has_access, status, days, tariff = await check_user_access(user_id)
     if not has_access:
         return "" # Tarif tugasa javob bermaydi
 
-    history = await get_user_messages(user_id, limit=4)
-    history_text = "\n".join([f"Mijoz: {h['message']}\nSiz: {h['response']}" for h in history])
+    history = await get_user_messages(user_id, chat_id=chat_id, limit=8)
+    history_text = "\n".join([f"{h.get('sender_name', 'Mijoz')}: {h['message']}\nSiz: {h['response']}" for h in history])
     owner_name = user_info.get("full_name", "Men")
 
     biz_info = user_info.get('business_info', 'Hozircha ma\'lumot kiritilmagan.')
@@ -51,8 +51,9 @@ VAZIFA:
 2. MUHIM - TIL VA ALIFBO: Mijoz sizga qaysi tilda (Inglizcha, Ruscha, O'zbekcha) yozsa AYNAN O'SHA TILDA javob bering! Agar mijoz Krill alifbosida yozsa, SIZ HAM KRILLDA yozing. Agar Lotinda yozsa, Lotinda yozing!
 3. {'Mijozga kerak bo\'lsa ushbu kanalimiz/guruhimiz linkini bering: ' + channel_link if channel_link else ''}
 4. Mijozga aslo "Men AI botman" demang. Siz odamsiz.
+5. Oldingi suhbat tarixini eslab qoling va mijoz so'ragan narsalarni doim xotirada tuting.
 
-SUHBAT TARIXI:
+SUHBAT TARIXI (Ushbu mijoz bilan):
 {history_text}"""
 
     # 1. Try primary Groq
@@ -189,7 +190,7 @@ async def on_new_userbot_message(event):
     sender_name = getattr(sender, 'first_name', 'Mijoz') or 'Mijoz'
     
     async with event.client.action(event.chat_id, 'typing'):
-        reply = await get_ai_reply(text, owner_id, user_info, sender_name, tariff)
+        reply = await get_ai_reply(text, owner_id, user_info, sender_name, tariff, chat_id=event.chat_id)
         
     dlog(f"[{owner_id}] AI javobi: {reply}")
     if reply:
@@ -211,7 +212,7 @@ async def on_new_userbot_message(event):
             except Exception as e:
                 dlog(f"Golos xatosi: {e}")
                 
-        await save_message(owner_id, text, reply)
+        await save_message(owner_id, text, reply, chat_id=event.chat_id, sender_name=sender_name)
     else:
         dlog(f"[{owner_id}] AI bo'sh javob qaytardi, xabar yuborilmadi.")
 

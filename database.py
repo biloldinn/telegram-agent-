@@ -189,17 +189,22 @@ async def get_pending_payments():
     cursor = payments_col.find({"status": "pending"}).sort("created_at", -1)
     return await cursor.to_list(length=10)
 
-# ============ XABARLAR TARIXI ============
-async def save_message(user_id: int, message: str, response: str):
+# ============ XABARLAR TARIXI (MIJOZLAR XOTIRASI) ============
+async def save_message(user_id: int, message: str, response: str, chat_id: int = None, sender_name: str = None):
     await messages_col.insert_one({
         "user_id": user_id,
+        "chat_id": chat_id or user_id,
+        "sender_name": sender_name or "Mijoz",
         "message": message,
         "response": response,
         "created_at": datetime.now().isoformat()
     })
 
-async def get_user_messages(user_id: int, limit=5):
-    cursor = messages_col.find({"user_id": user_id}).sort("created_at", -1).limit(limit)
+async def get_user_messages(user_id: int, chat_id: int = None, limit=8):
+    query = {"user_id": user_id}
+    if chat_id:
+        query["chat_id"] = chat_id
+    cursor = messages_col.find(query).sort("created_at", -1).limit(limit)
     res = await cursor.to_list(length=limit)
     return list(reversed(res))
 
