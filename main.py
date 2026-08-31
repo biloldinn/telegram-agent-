@@ -262,11 +262,17 @@ async def show_profile(message: types.Message):
 
 async def show_ai_settings(message: types.Message):
     user = await get_user(message.from_user.id)
-    is_enabled = bool(user.get("ai_enabled", 1))
+    if not user:
+        await message.answer("❌ Profil topilmadi. Iltimos, /start buyrug'ini bosing.")
+        return
     await message.answer(
         "🤖 <b>AI Yordamchi Sozlamalari</b>\n\nBu yerdan sun'iy intellekt javob berishini boshqarishingiz mumkin.",
         reply_markup=get_ai_settings_keyboard(user)
     )
+
+# ... (other code around here remains unchanged) ...
+# Let me just fix the exact callback functions.
+
 
 async def show_help(message: types.Message):
     await message.answer("""❓ <b>YORDAM MARKAZI</b>
@@ -358,12 +364,16 @@ async def cb_buy_smm(callback: CallbackQuery):
 
 @dp.callback_query(F.data == "ai_toggle_on")
 async def cb_ai_on(callback: CallbackQuery):
+    user = await get_user(callback.from_user.id)
+    if not user: return
     await update_user(callback.from_user.id, ai_enabled=1)
     await callback.message.edit_reply_markup(reply_markup=get_ai_settings_keyboard({'ai_enabled': 1, 'group_reply_enabled': user.get('group_reply_enabled', 0)}))
     await callback.answer("✅ AI javob berish yoqildi!")
 
 @dp.callback_query(F.data == "ai_toggle_off")
 async def cb_ai_off(callback: CallbackQuery):
+    user = await get_user(callback.from_user.id)
+    if not user: return
     await update_user(callback.from_user.id, ai_enabled=0)
     await callback.message.edit_reply_markup(reply_markup=get_ai_settings_keyboard({'ai_enabled': 0, 'group_reply_enabled': user.get('group_reply_enabled', 0)}))
     await callback.answer("❌ AI javob berish o'chirildi!")
