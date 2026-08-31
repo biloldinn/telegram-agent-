@@ -368,18 +368,23 @@ async def submit_code(user_id: int, code: str, password: str = None):
 
 async def extract_and_save_persona(client, user_id):
     try:
+        # Xavfsizlik uchun ulanishdan so'ng biroz kutamiz (Ban olmaslik uchun)
+        await asyncio.sleep(5)
+        
         sample_messages = []
-        dialogs = await client.get_dialogs(limit=20)
+        dialogs = await client.get_dialogs(limit=10)
         for d in dialogs:
             if d.is_user and not d.entity.bot:
-                async for msg in client.iter_messages(d.entity, limit=15):
+                async for msg in client.iter_messages(d.entity, limit=10):
                     if msg.out and msg.text and len(msg.text.strip()) > 3:
                         sample_messages.append(msg.text.strip())
-                        if len(sample_messages) >= 60: break
-            if len(sample_messages) >= 60: break
+                        if len(sample_messages) >= 40: break
+                # Telegram antispam blokka tushmaslik uchun sekinroq so'rov yuboramiz
+                await asyncio.sleep(1.5)
+            if len(sample_messages) >= 40: break
             
         if sample_messages:
-            corpus = "\n".join(sample_messages[:60])
+            corpus = "\n".join(sample_messages[:40])
             prompt = f"Quyida foydalanuvchining haqiqiy yozishmalari keltirilgan:\n{corpus}\n\nUning gapirish uslubi, so'z boyligi, xarakterini tahlil qiling va qisqacha System Prompt yozing (Masalan: 'Sizning uslubingiz qisqa, hazilkash va samimiy. Siz odatda ... so'zlarini ishlatasiz')."
             
             resp = await groq_client.chat.completions.create(
