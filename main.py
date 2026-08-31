@@ -521,6 +521,18 @@ async def cb_admin_reject(callback: CallbackQuery):
 @dp.message(F.text == "рџ”— Profilni ulash (AI)")
 async def btn_link_profile(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
+    
+    # Check if already connected
+    user = await get_user(user_id)
+    if user and user.get('session_string'):
+        try:
+            from userbot_manager import active_userbots
+            if user_id in active_userbots:
+                await message.answer("✅ <b>Sizning profilingiz allaqachon botga muvaffaqiyatli ulangan!</b>\nAI hozir xabarlaringizga javob bermoqda.\n\nAgar boshqa raqam ulamoqchi bo'lsangiz yoki muammo bo'lsa, adminga murojaat qiling.")
+                return
+        except Exception:
+            pass
+
     has_access, status_text, days_left, tariff = await check_user_access(user_id)
     
     if not has_access:
@@ -1049,6 +1061,7 @@ if __name__ == '__main__':
         print("\nBot to'xtatildi!")
     except Exception as e:
         print(f"\nXatolik: {e}")
+
 
 
 
