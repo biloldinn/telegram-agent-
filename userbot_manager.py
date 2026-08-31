@@ -1,5 +1,7 @@
 import asyncio
 from telethon import TelegramClient, events
+from telethon.sessions import StringSession
+
 import datetime
 
 def dlog(msg):
@@ -322,6 +324,14 @@ async def submit_code(user_id: int, code: str, password: str = None):
             
         me = await client.get_me()
         
+        # Session string ni MongoDB Atlas ga doimiy saqlash
+        try:
+            session_str = client.session.save()
+            from database import update_user
+            await update_user(user_id, session_string=session_str, ai_enabled=1, phone_number=phone)
+        except Exception as e_save:
+            dlog(f"Session string saqlashda xato: {e_save}")
+        
         # Userbot muvaffaqiyatli ishga tushdi
         client.owner_id = user_id
         client.add_event_handler(on_new_userbot_message, events.NewMessage(incoming=True))
@@ -421,8 +431,8 @@ async def on_incoming_call(event):
         dlog(f"Qong'iroq xatosi: {e}")
 
 async def load_active_userbots(users_cursor):
-    """Bot qayta yonganda barcha aktiv userbotlarni ishga tushirish"""
-    print("Userbotlar tekshirilmoqda...")
+    """Bot qayta yonganda barcha aktiv userbotlarni MongoDB Atlas dan yuklash"""
+    print("Userbotlar MongoDB Atlas dan tekshirilmoqda...")
     try:
         users = await users_cursor.to_list(length=1000)
     except Exception as e:
@@ -433,24 +443,44 @@ async def load_active_userbots(users_cursor):
         user_id = u.get('user_id')
         if not user_id:
             continue
-        session_path = f"sessions/{user_id}.session"
-        if os.path.exists(session_path):
+        
+        session_str = u.get('session_string')
+        client = None
+        
+        # 1. MongoDB StringSession mavjud bo'lsa
+        if session_str:
+            client = TelegramClient(StringSession(session_str), API_ID, API_HASH)
+        else:
+            # 2. Eskicha lokal session fayli bo'lsa (Migratsiya)
+            session_path = f"sessions/{user_id}.session"
+            if os.path.exists(session_path):
+                client = TelegramClient(f"sessions/{user_id}", API_ID, API_HASH)
+
+        if client:
             try:
                 has_access, _, _, _ = await check_user_access(user_id)
                 if has_access and u.get("ai_enabled", 1):
-                    client = TelegramClient(f"sessions/{user_id}", API_ID, API_HASH)
                     try:
-                        await asyncio.wait_for(client.connect(), timeout=3.0)
+                        await asyncio.wait_for(client.connect(), timeout=5.0)
                     except Exception:
                         continue
                     if await client.is_user_authorized():
+                        # Migratsiya: agar DB da string yo'q bo'lsa, saqlaymiz
+                        if not session_str:
+                            try:
+                                s_save = client.session.save()
+                                from database import update_user
+                                await update_user(user_id, session_string=s_save)
+                            except Exception:
+                                pass
                         client.owner_id = user_id
                         client.add_event_handler(on_new_userbot_message, events.NewMessage(incoming=True))
                         client.add_event_handler(on_outgoing_message, events.NewMessage(outgoing=True))
                         client.add_event_handler(on_incoming_call, events.Raw())
                         active_userbots[user_id] = client
-                        print(f"[Userbot] {user_id} - faol.")
+                        print(f"[Userbot] {user_id} - faol (MongoDB Atlas).")
                     else:
                         await client.disconnect()
             except Exception as e:
                 print(f"[Userbot] {user_id} xatolik: {e}")
+
