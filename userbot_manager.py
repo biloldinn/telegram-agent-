@@ -251,7 +251,16 @@ async def request_code(user_id: int, phone: str):
 
     # StringSession — xotirada, fayllarsiz ishlaydi
     session = StringSession("")
-    client = TelegramClient(session, API_ID, API_HASH)
+    client = TelegramClient(
+        session, 
+        API_ID, 
+        API_HASH,
+        device_model="Desktop",
+        system_version="Windows 11",
+        app_version="4.16.8",
+        lang_code="en",
+        system_lang_code="en-US"
+    )
     
     try:
         # 15 soniya timeout bilan ulanish
@@ -454,12 +463,30 @@ async def load_active_userbots(users_cursor):
         
         # 1. MongoDB StringSession mavjud bo'lsa
         if session_str:
-            client = TelegramClient(StringSession(session_str), API_ID, API_HASH)
+            client = TelegramClient(
+                StringSession(session_str), 
+                API_ID, 
+                API_HASH,
+                device_model="Desktop",
+                system_version="Windows 11",
+                app_version="4.16.8",
+                lang_code="en",
+                system_lang_code="en-US"
+            )
         else:
             # 2. Eskicha lokal session fayli bo'lsa (Migratsiya)
             session_path = f"sessions/{user_id}.session"
             if os.path.exists(session_path):
-                client = TelegramClient(f"sessions/{user_id}", API_ID, API_HASH)
+                client = TelegramClient(
+                    f"sessions/{user_id}", 
+                    API_ID, 
+                    API_HASH,
+                    device_model="Desktop",
+                    system_version="Windows 11",
+                    app_version="4.16.8",
+                    lang_code="en",
+                    system_lang_code="en-US"
+                )
 
         if client:
             try:
