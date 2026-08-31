@@ -76,7 +76,6 @@ async def add_user(user_id: int, username: str, full_name: str, referrer_id: int
                 t_end = ref_user.get("tariff_end")
                 t_type = ref_user.get("tariff_type")
                 if t_end and t_type != 'trial' and t_type != 'none':
-                    from datetime import datetime, timedelta
                     end_dt = datetime.fromisoformat(t_end)
                     now = datetime.now()
                     if now < end_dt:
