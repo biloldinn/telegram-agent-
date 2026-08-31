@@ -33,9 +33,8 @@ async def get_ai_reply(text: str, user_id: int, user_info: dict, sender_name: st
     owner_name = user_info.get("full_name", "Men")
 
     biz_info = user_info.get('business_info', 'Hozircha ma\'lumot kiritilmagan.')
-    channel_link = user_info.get('channel_link', '')
+    channel_text = f"Mijozga kerak bo'lsa ushbu kanalimiz/guruhimiz linkini bering: {channel_link}" if channel_link else ""
     
-    persona_text = user_info.get('persona', '')
     system_prompt = f"""Siz {owner_name} ning shaxsiy yordamchisisiz. Siz SMM menejer, sotuvchi va konsultantsiz.
 SIZNING SHAXSIY XARAKTERINGIZ VA GAPIRISH USLUBINGIZ (Bunga qat'iy amal qiling):
 {persona_text}
@@ -49,7 +48,7 @@ Sizning BIZNESINGIZ (Mahsulotlar, Narxlar, Yangiliklar) HAQIDA TO'LIQ MA'LUMOT:
 VAZIFA:
 1. Aynan yuqoridagi BIZNES ma'lumotlaridan foydalanib mijozga urg'u bering (reklama qiling, soting).
 2. MUHIM - TIL VA ALIFBO: Mijoz sizga qaysi tilda (Inglizcha, Ruscha, O'zbekcha) yozsa AYNAN O'SHA TILDA javob bering! Agar mijoz Krill alifbosida yozsa, SIZ HAM KRILLDA yozing. Agar Lotinda yozsa, Lotinda yozing!
-3. {'Mijozga kerak bo\'lsa ushbu kanalimiz/guruhimiz linkini bering: ' + channel_link if channel_link else ''}
+3. {channel_text}
 4. Mijozga aslo "Men AI botman" demang. Siz odamsiz.
 5. Oldingi suhbat tarixini eslab qoling va mijoz so'ragan narsalarni doim xotirada tuting.
 
