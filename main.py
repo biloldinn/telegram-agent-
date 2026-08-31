@@ -1058,27 +1058,32 @@ async def main():
     # Orqa fonda avtomatik eslatma cronini yoqish
     asyncio.create_task(check_expired_trials_cron())
 
-    if os.environ.get("VERCEL") or os.environ.get("USERBOTS_ONLY"):
-        print("🤖 USERBOT WORKER MODE: Polling ishga tushirilmadi (Faqat userbotlar ishlamoqda).")
-        # Render bepul Web Service uchun — HTTP port ochib turadi
+    if os.environ.get("VERCEL"):
+        # Vercel serverless — faqat webhook orqali ishlaydi, polling yo'q
+        print("🌐 VERCEL MODE: Polling o'chirilgan, faqat webhook.")
         port = int(os.environ.get("PORT", 8080))
         try:
             from aiohttp import web as aio_web
             async def health(request):
-                return aio_web.Response(text="Bot ishlayapti OK")
+                return aio_web.Response(text="OK")
             _app = aio_web.Application()
             _app.router.add_get("/", health)
-            _app.router.add_get("/health", health)
             _runner = aio_web.AppRunner(_app)
             await _runner.setup()
             _site = aio_web.TCPSite(_runner, "0.0.0.0", port)
             await _site.start()
-            print(f"🌐 Keep-alive HTTP server port {port} da ishga tushdi.")
         except Exception as _e:
-            print(f"[HTTP Server] {_e}")
+            print(f"[HTTP] {_e}")
+        while True:
+            await asyncio.sleep(3600)
+    elif os.environ.get("USERBOTS_ONLY"):
+        # Faqat userbot daemon rejimi (lokal kompyuter uchun)
+        print("🤖 USERBOT ONLY MODE: Polling o'chirilgan.")
         while True:
             await asyncio.sleep(3600)
     else:
+        # To'liq rejim: Railway yoki lokal — polling + userbotlar birga ishlaydi
+        print("🚀 TO'LIQ REJIM: Bot polling + Userbotlar birga ishlamoqda.")
         await start_polling_loop()
 
 

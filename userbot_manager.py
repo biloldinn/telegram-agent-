@@ -33,6 +33,8 @@ async def get_ai_reply(text: str, user_id: int, user_info: dict, sender_name: st
     owner_name = user_info.get("full_name", "Men")
 
     biz_info = user_info.get('business_info', 'Hozircha ma\'lumot kiritilmagan.')
+    channel_link = user_info.get('channel_link', '')
+    persona_text = user_info.get('persona', '')
     channel_text = f"Mijozga kerak bo'lsa ushbu kanalimiz/guruhimiz linkini bering: {channel_link}" if channel_link else ""
     
     system_prompt = f"""Siz {owner_name} ning shaxsiy yordamchisisiz. Siz SMM menejer, sotuvchi va konsultantsiz.
