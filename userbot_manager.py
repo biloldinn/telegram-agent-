@@ -234,6 +234,15 @@ async def request_code(user_id: int, phone: str):
             pass
         active_userbots.pop(user_id, None)
 
+    # Yangi login boshlanayotganda eskirgan yarim-chala sessiyani tozalash
+    for ext in [".session", ".session-journal"]:
+        f_p = f"sessions/{user_id}{ext}"
+        if os.path.exists(f_p):
+            try:
+                os.remove(f_p)
+            except Exception:
+                pass
+
     client = TelegramClient(session_path, API_ID, API_HASH)
     
     try:
@@ -244,7 +253,15 @@ async def request_code(user_id: int, phone: str):
             await client.connect()
             retries += 1
             
-        result = await client.send_code_request(phone)
+        try:
+            result = await client.send_code_request(phone)
+        except Exception as e_req:
+            if "AuthRestart" in str(e_req) or "restart" in str(e_req).lower():
+                await asyncio.sleep(1)
+                result = await client.send_code_request(phone)
+            else:
+                raise e_req
+
         login_clients[user_id] = {
             'client': client,
             'phone': phone,
