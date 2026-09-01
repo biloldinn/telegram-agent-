@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 logging.basicConfig(level=logging.INFO)
 import sys
 if sys.platform == "win32":
@@ -12,7 +12,7 @@ from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from states import LoginState
-from userbot_manager import request_code, submit_code, load_active_userbots
+from userbot_manager import load_active_userbots
 from aiogram.enums import ChatAction, ParseMode
 from aiogram.types import (
     InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery,
@@ -54,12 +54,11 @@ def get_contact_keyboard():
         resize_keyboard=True
     )
 
-def get_main_menu():
+def get_main_menu(user_id):
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="🔗 Instagramni ulash")],
-            [KeyboardButton(text="🔗 Profilni ulash (Telegram)")],
-            [KeyboardButton(text="💎 Tariflar"), KeyboardButton(text="👥 Do'stlarni taklif qilish")],
+            [KeyboardButton(text="🔗 Profilni ulash", web_app=types.WebAppInfo(url=f"{WEBHOOK_URL}/?user_id={user_id}"))],
+            [KeyboardButton(text="ℹ️ Tariflar"), KeyboardButton(text="👥 Do'stlarni taklif qilish")],
             [KeyboardButton(text="👤 Mening Profilim"), KeyboardButton(text="⚙️ AI Sozlamalar")]
         ],
         resize_keyboard=True,
@@ -213,7 +212,7 @@ Men sizning shaxsiy Telegram profilingizni aqlli <b>Avto-Javob beruvchi Sotuv Me
 
 рџ‘‡ <i>Menyudan kerakli bo'limni tanlang:</i>"""
 
-    await message.answer(welcome_text, reply_markup=get_main_menu())
+    await message.answer(welcome_text, reply_markup=get_main_menu(message.from_user.id))
 
 # ============ MENU ACTIONS (TEXT) ============
 async def show_tariffs(message: types.Message):
@@ -279,7 +278,7 @@ async def show_help(message: types.Message):
 Bu platforma orqali siz shaxsiy akkauntingizga Sun'iy Intellekt ulab olishingiz mumkin. AI sizning biznesingiz haqidagi ma'lumotlarni yodlab oladi va mijozlaringizga sizning o'rningizga javob qaytaradi.
 
 рџ‘ЁвЂЌрџ’» <b>Admin bilan bog'lanish:</b> Tizimda muammo bo'lsa yoki tarif sotib olishda savolingiz bo'lsa to'g'ridan-to'g'ri yozing.
-в™»пёЏ Botni yangilash uchun: /start""", reply_markup=get_main_menu())
+в™»пёЏ Botni yangilash uchun: /start""", reply_markup=get_main_menu(message.from_user.id))
 
 @dp.message(F.text == "рџ’і Tariflar")
 async def btn_tariffs_handler(message: types.Message):
@@ -594,11 +593,8 @@ def normalize_phone(phone_input: str) -> str:
     else:
         return f"+{digits}"
 
-@dp.message(LoginState.waiting_for_phone)
-async def process_phone(message: types.Message, state: FSMContext):
-    if message.text in ['рџ”™ Bekor qilish', '/cancel', 'cancel']:
-        await state.clear()
-        await message.answer('Bekor qilindi.', reply_markup=get_main_menu())
+
+        await message.answer('Bekor qilindi.', reply_markup=get_main_menu(message.from_user.id))
         return
     raw_phone = message.contact.phone_number if message.contact else message.text
     if not raw_phone:
@@ -624,16 +620,11 @@ async def process_phone(message: types.Message, state: FSMContext):
             reply_markup=types.ReplyKeyboardRemove()
         )
     else:
-        await message.answer(f"вќЊ <b>Xatolik yuz berdi:</b>\n<code>{result}</code>\n\nIltimos, raqam to'g'riligini tekshiring va qayta urinib ko'ring.", reply_markup=get_main_menu())
+        await message.answer(f"вќЊ <b>Xatolik yuz berdi:</b>\n<code>{result}</code>\n\nIltimos, raqam to'g'riligini tekshiring va qayta urinib ko'ring.", reply_markup=get_main_menu(message.from_user.id))
         await state.clear()
 
-@dp.message(LoginState.waiting_for_code)
-async def process_code(message: types.Message, state: FSMContext):
-    raw_text = message.text or ""
-    
-    if raw_text in ['рџ”™ Bekor qilish', '/cancel', 'cancel', 'bekor']:
-        await state.clear()
-        await message.answer('Bekor qilindi.', reply_markup=get_main_menu())
+
+        await message.answer('Bekor qilindi.', reply_markup=get_main_menu(message.from_user.id))
         return
 
     import re
@@ -655,28 +646,18 @@ async def process_code(message: types.Message, state: FSMContext):
     success, msg = await submit_code(user_id, code)
     
     if success:
-        await message.answer("вњ… <b>Muvaffaqiyatli ulandi!</b>\nEndi AI profilingiz nomidan mijozlaringizga javob qaytaradi.", reply_markup=get_main_menu())
+        await message.answer("вњ… <b>Muvaffaqiyatli ulandi!</b>\nEndi AI profilingiz nomidan mijozlaringizga javob qaytaradi.", reply_markup=get_main_menu(message.from_user.id))
         await state.clear()
     elif msg == "PASSWORD_NEEDED":
         await message.answer("рџ”ђ <b>2-bosqichli parol (Two-Step Verification) o'rnatilgan ekan.</b>\n\nIltimos, parolingizni kiriting:")
         await state.set_state(LoginState.waiting_for_password)
     else:
-        await message.answer(f"вќЊ Kod xato yoki eskirgan:\n<code>{msg}</code>", reply_markup=get_main_menu())
+        await message.answer(f"вќЊ Kod xato yoki eskirgan:\n<code>{msg}</code>", reply_markup=get_main_menu(message.from_user.id))
         await state.clear()
 
-@dp.message(LoginState.waiting_for_password)
-async def process_password(message: types.Message, state: FSMContext):
-    pwd = message.text.strip()
-    user_id = message.from_user.id
-    
-    await message.answer("вЏі <i>Tekshirilmoqda...</i>")
-    success, msg = await submit_code(user_id, "", password=pwd)
-    
-    if success:
-        await message.answer("вњ… <b>Muvaffaqiyatli ulandi!</b>\nEndi AI profilingiz nomidan mijozlaringizga javob qaytaradi.", reply_markup=get_main_menu())
-        await state.clear()
+
     else:
-        await message.answer(f"вќЊ Parol xato:\n<code>{msg}</code>", reply_markup=get_main_menu())
+        await message.answer(f"вќЊ Parol xato:\n<code>{msg}</code>", reply_markup=get_main_menu(message.from_user.id))
         await state.clear()
 
 
@@ -690,7 +671,7 @@ async def cb_set_biz_info(callback: CallbackQuery, state: FSMContext):
 async def process_biz_info(message: types.Message, state: FSMContext):
     text = message.text.strip()
     await update_business_info(message.from_user.id, text)
-    await message.answer("вњ… <b>Biznesingiz haqidagi ma'lumotlar saqlandi!</b>\nEndi AI mijozlarga aynan shu ma'lumotlar asosida sotuv qiladi va xizmat ko'rsatadi.", reply_markup=get_main_menu())
+    await message.answer("вњ… <b>Biznesingiz haqidagi ma'lumotlar saqlandi!</b>\nEndi AI mijozlarga aynan shu ma'lumotlar asosida sotuv qiladi va xizmat ko'rsatadi.", reply_markup=get_main_menu(message.from_user.id))
     await state.clear()
 
 
@@ -713,7 +694,7 @@ async def cb_set_link(callback: CallbackQuery, state: FSMContext):
 async def process_link(message: types.Message, state: FSMContext):
     link = message.text.strip()
     await update_group_settings(message.from_user.id, channel_link=link)
-    await message.answer("вњ… <b>Link muvaffaqiyatli saqlandi!</b>", reply_markup=get_main_menu())
+    await message.answer("вњ… <b>Link muvaffaqiyatli saqlandi!</b>", reply_markup=get_main_menu(message.from_user.id))
     await state.clear()
 
 
@@ -882,7 +863,7 @@ async def process_admin_broadcast(message: types.Message, state: FSMContext):
 @dp.message(F.text == "рџ”™ Bekor qilish")
 async def btn_cancel_handler(message: types.Message, state: FSMContext):
     await state.clear()
-    await message.answer("Amal bekor qilindi.", reply_markup=get_main_menu())
+    await message.answer("Amal bekor qilindi.", reply_markup=get_main_menu(message.from_user.id))
 
 @dp.message(F.text)
 async def handle_text(message: types.Message):
@@ -1034,7 +1015,7 @@ async def start_polling_loop():
             print(f"[Polling Ogohlantirish] {e}. 5 soniyadan so'ng qayta ulanadi...")
             await asyncio.sleep(5)
 
-from instagram_api import start_web_server
+from web_server import start_web_server
 
 async def main():
     print("[1/2] MongoDB Atlas bazasiga ulanmoqda...")
@@ -1090,6 +1071,7 @@ if __name__ == '__main__':
         print("\nBot to'xtatildi!")
     except Exception as e:
         print(f"\nXatolik: {e}")
+
 
 
 
