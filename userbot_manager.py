@@ -1,4 +1,4 @@
-import asyncio
+﻿import asyncio
 import os
 import time
 import tempfile
@@ -60,7 +60,7 @@ async def get_ai_reply(prompt, persona_text):
     
     try:
         resp = await groq_client.chat.completions.create(
-            model="llama-3.1-70b-versatile",
+            model="openai/gpt-oss-120b",
             messages=[
                 {"role": "system", "content": sys_prompt},
                 {"role": "user", "content": prompt}
@@ -71,7 +71,7 @@ async def get_ai_reply(prompt, persona_text):
     except Exception as e1:
         try:
             resp = await groq_backup.chat.completions.create(
-                model="llama-3.1-70b-versatile",
+                model="openai/gpt-oss-120b",
                 messages=[
                     {"role": "system", "content": sys_prompt},
                     {"role": "user", "content": prompt}
@@ -177,7 +177,7 @@ async def on_incoming_call(event):
     try:
         caller_id = getattr(event.phone_call, 'participant_id', getattr(event.phone_call, 'admin_id', None))
         if caller_id and caller_id != owner_id:
-            await event.client.send_message(caller_id, "Hozircha qo'ng'iroqlarga javob bera olmayman 📵\nIltimos, yozma ravishda yoki ovozli xabar qoldiring.")
+            await event.client.send_message(caller_id, "Hozircha qo'ng'iroqlarga javob bera olmayman рџ“µ\nIltimos, yozma ravishda yoki ovozli xabar qoldiring.")
             
             await event.client(DiscardCallRequest(
                 peer=event.phone_call,
@@ -217,3 +217,4 @@ async def load_active_userbots(users_cursor):
         has_access, _, _, _ = await check_user_access(user_id)
         if has_access and u.get("ai_enabled", 1) == 1:
             asyncio.create_task(start_userbot_from_session(user_id, session_str))
+
