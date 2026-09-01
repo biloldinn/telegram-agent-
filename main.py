@@ -590,10 +590,11 @@ def normalize_phone(phone_input: str) -> str:
         return f"+998{digits}"
     elif len(digits) == 12 and digits.startswith("998"):
         return f"+{digits}"
-    else:
-        return f"+{digits}"
 
-
+@dp.message(LoginState.waiting_for_phone)
+async def process_phone(message: types.Message, state: FSMContext):
+    if message.text in ['❌ Bekor qilish', '/cancel', 'cancel']:
+        await state.clear()
         await message.answer('Bekor qilindi.', reply_markup=get_main_menu(message.from_user.id))
         return
     raw_phone = message.contact.phone_number if message.contact else message.text
@@ -602,28 +603,33 @@ def normalize_phone(phone_input: str) -> str:
         
     phone = normalize_phone(raw_phone)
     if not phone or len(phone) < 10:
-        await message.answer("РІСњРЉ <b>Telefon raqam noto'g'ri kiritildi!</b>\n\nIltimos, qaytadan kiriting (Masalan: <code>+998901234567</code> yoki <code>901234567</code>):")
+        await message.answer("❌ <b>Telefon raqam noto'g'ri kiritildi!</b>\n\nIltimos, qaytadan kiriting (Masalan: <code>+998901234567</code> yoki <code>901234567</code>):")
         return
         
-    await message.answer(f"РІРЏС– <i>Kutib turing, Telegram'dan tasdiqlash bodi so'ralmoqda (Raqam: <code>{phone}</code>)...</i>")
+    await message.answer(f"⏳ <i>Kutib turing, Telegram'dan tasdiqlash kodi so'ralmoqda (Raqam: <code>{phone}</code>)...</i>")
     
     success, result = await request_code(message.from_user.id, phone)
     if success:
         await state.update_data(phone=phone)
         await state.set_state(LoginState.waiting_for_code)
         await message.answer(
-            f"СЂСџвЂќС’ <b>TELEGRAM TASDIQLASH KODI YUBORILDI!</b>\n\n"
-            f"СЂСџвЂњВ± Raqam: <code>{phone}</code>\n\n"
+            f"🔒 <b>TELEGRAM TASDIQLASH KODI YUBORILDI!</b>\n\n"
+            f"📱 Raqam: <code>{phone}</code>\n\n"
             "Iltimos, rasmiy <b>Telegram</b> ilovangizga (rasmiy Telegram xabarlariga) kelgan 5 xonali kodni kiriting:\n"
-            "РІР‚Сћ Qanday yozsangiz ham qabul qilinadi: <code>32222</code> yoki <code>3 2 2 2 2</code>\n"
-            "РІР‚Сћ Yoki xabarni to'g'ridan-to'g'ri forward qiling!",
+            "• Qanday yozsangiz ham qabul qilinadi: <code>32222</code> yoki <code>3 2 2 2 2</code>\n"
+            "• Yoki xabarni to'g'ridan-to'g'ri forward qiling!",
             reply_markup=types.ReplyKeyboardRemove()
         )
     else:
-        await message.answer(f"РІСњРЉ <b>Xatolik yuz berdi:</b>\n<code>{result}</code>\n\nIltimos, raqam to'g'riligini tekshiring va qayta urinib ko'ring.", reply_markup=get_main_menu(message.from_user.id))
+        await message.answer(f"❌ <b>Xatolik yuz berdi:</b>\n<code>{result}</code>\n\nIltimos, raqam to'g'riligini tekshiring va qayta urinib ko'ring.", reply_markup=get_main_menu(message.from_user.id))
         await state.clear()
 
-
+@dp.message(LoginState.waiting_for_code)
+async def process_code(message: types.Message, state: FSMContext):
+    raw_text = message.text or ""
+    
+    if raw_text in ['❌ Bekor qilish', '/cancel', 'cancel', 'bekor']:
+        await state.clear()
         await message.answer('Bekor qilindi.', reply_markup=get_main_menu(message.from_user.id))
         return
 
@@ -637,29 +643,38 @@ def normalize_phone(phone_input: str) -> str:
         code = digits[:5] if len(digits) >= 5 else digits
 
     if not code or len(code) < 4:
-        await message.answer("РІСњРЉ <b>Kodni aniqlab bo'lmadi!</b>\n\nIltimos, Telegramdan kelgan 5 xonali tasdiqlash parolini yuboring (Masalan: <code>32222</code> yoki <code>3 2 2 2 2</code>):")
+        await message.answer("❌ <b>Kodni aniqlab bo'lmadi!</b>\n\nIltimos, Telegramdan kelgan 5 xonali tasdiqlash parolini yuboring (Masalan: <code>32222</code> yoki <code>3 2 2 2 2</code>):")
         return
 
     user_id = message.from_user.id
     
-    await message.answer("РІРЏС– <i>Tekshirilmoqda...</i>")
+    await message.answer("⏳ <i>Tekshirilmoqda...</i>")
     success, msg = await submit_code(user_id, code)
     
     if success:
-        await message.answer("РІСљвЂ¦ <b>Muvaffaqiyatli ulandi!</b>\nEndi AI profilingiz nomidan mijozlaringizga javob qaytaradi.", reply_markup=get_main_menu(message.from_user.id))
+        await message.answer("✅ <b>Muvaffaqiyatli ulandi!</b>\nEndi AI profilingiz nomidan mijozlaringizga javob qaytaradi.", reply_markup=get_main_menu(message.from_user.id))
         await state.clear()
     elif msg == "PASSWORD_NEEDED":
-        await message.answer("СЂСџвЂќС’ <b>2-bosqichli parol (Two-Step Verification) o'rnatilgan ekan.</b>\n\nIltimos, parolingizni kiriting:")
+        await message.answer("🔒 <b>2-bosqichli parol (Two-Step Verification) o'rnatilgan ekan.</b>\n\nIltimos, parolingizni kiriting:")
         await state.set_state(LoginState.waiting_for_password)
     else:
-        await message.answer(f"РІСњРЉ Kod xato yoki eskirgan:\n<code>{msg}</code>", reply_markup=get_main_menu(message.from_user.id))
+        await message.answer(f"❌ Kod xato yoki eskirgan:\n<code>{msg}</code>", reply_markup=get_main_menu(message.from_user.id))
         await state.clear()
 
-
+@dp.message(LoginState.waiting_for_password)
+async def process_password(message: types.Message, state: FSMContext):
+    pwd = message.text.strip()
+    user_id = message.from_user.id
+    
+    await message.answer("⏳ <i>Tekshirilmoqda...</i>")
+    success, msg = await submit_code(user_id, "", password=pwd)
+    
+    if success:
+        await message.answer("✅ <b>Muvaffaqiyatli ulandi!</b>\nEndi AI profilingiz nomidan mijozlaringizga javob qaytaradi.", reply_markup=get_main_menu(message.from_user.id))
+        await state.clear()
     else:
-        await message.answer(f"РІСњРЉ Parol xato:\n<code>{msg}</code>", reply_markup=get_main_menu(message.from_user.id))
+        await message.answer(f"❌ Parol xato:\n<code>{msg}</code>", reply_markup=get_main_menu(message.from_user.id))
         await state.clear()
-
 
 @dp.callback_query(F.data == "set_biz_info")
 async def cb_set_biz_info(callback: CallbackQuery, state: FSMContext):
