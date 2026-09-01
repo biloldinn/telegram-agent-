@@ -1,4 +1,4 @@
-﻿import logging
+import logging
 logging.basicConfig(level=logging.INFO)
 import sys
 if sys.platform == "win32":
@@ -589,6 +589,8 @@ def normalize_phone(phone_input: str) -> str:
     if len(digits) == 9:
         return f"+998{digits}"
     elif len(digits) == 12 and digits.startswith("998"):
+        return f"+{digits}"
+    else:
         return f"+{digits}"
 
 @dp.message(LoginState.waiting_for_phone)
