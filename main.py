@@ -57,7 +57,7 @@ def get_contact_keyboard():
 def get_main_menu(user_id):
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="🔗 Profilni ulash", web_app=types.WebAppInfo(url=f"{WEBHOOK_URL}/?user_id={user_id}"))],
+            [KeyboardButton(text="🔗 Profilni ulash", web_app=types.WebAppInfo(url=f"{WEBHOOK_URL.rstrip('/')}/?user_id={user_id}"))],
             [KeyboardButton(text="💎 Tariflar"), KeyboardButton(text="👥 Do'stlarni taklif qilish")],
             [KeyboardButton(text="👤 Mening Profilim"), KeyboardButton(text="⚙️ AI Sozlamalar")]
         ],
