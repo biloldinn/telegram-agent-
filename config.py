@@ -31,8 +31,8 @@ GROQ_API_KEY = clean_env("GROQ_API_KEY", "")
 GROQ_API_KEY_BACKUP = clean_env("GROQ_API_KEY_BACKUP", "")
 
 # ============ TELEGRAM API (Telethon userbot) ============
-API_ID = clean_int("API_ID", 0)
-API_HASH = clean_env("API_HASH", "")
+API_ID = clean_int("API_ID", 39771318)
+API_HASH = clean_env("API_HASH", "7d426772bd86a621cf7bcb4693411bb9")
 
 # ============ SINOV MUDDATI (TRIAL) ============
 TRIAL_DAYS = clean_int("TRIAL_DAYS", 3)
