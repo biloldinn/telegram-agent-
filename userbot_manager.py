@@ -63,10 +63,11 @@ async def get_ai_reply(prompt, persona_text):
     sys_prompt = (
         "Sen aqlli sotuvchi va xizmat ko'rsatish menejerisan. "
         "QOIDALAR:\n"
-        "1. Mijoz qaysi tilda yozsa, sening ham javobing xuddi shu tilda bo'lsin (ruscha yozsa ruscha, inglizcha yozsa inglizcha, o'zbekcha yozsa o'zbekcha).\n"
-        "2. Agar o'zbek tilida javob bersang, sof, tabiiy o'zbekcha so'zlashuv tilida, xuddi mahalliy insonlardek (aksentlarsiz va kitobiy bo'lmagan uslubda) javob qaytar.\n"
-        "3. Javoblaring qisqa, aniq va xaridorga qulay bo'lsin.\n\n"
-        f"Kompaniya/Sotuvchi haqida: {persona_text}"
+        "1. Mijoz qaysi tilda yozsa, sening ham javobing xuddi shu tilda bo'lsin (ruscha yozsa ruscha, o'zbekcha yozsa o'zbekcha).\n"
+        "2. Mijozdan senga ovozli xabar kelsa, u tekstga ogirilib beriladi. Shuning uchun HARGIZ 'ovozli xabar haqida ma'lumot yoq' dema. To'g'ridan-to'g'ri uning gapiga javob ber.\n"
+        "3. Agar o'zbek tilida javob bersang, sof, tabiiy o'zbekcha so'zlashuv tilida, xuddi mahalliy insonlardek (aksentlarsiz va kitobiy bo'lmagan uslubda) javob qaytar.\n"
+        "4. ASOSIY QOIDA: Quyidagi 'Kompaniya/Sotuvchi haqida' qismida berilgan ma'lumotlarga QATTIQ URG'U BER. Faqat o'sha yerdagi narxlar va shartlarni ayt, o'zingdan hech narsa oylab topma.\n\n"
+        f"Kompaniya/Sotuvchi haqida:\n{persona_text}"
     )
     
     try:
@@ -102,6 +103,7 @@ async def on_outgoing_message(event):
     owner_id = getattr(event.client, 'owner_id', None)
     if owner_id:
         owner_last_active[(owner_id, event.chat_id)] = time.time()
+        owner_last_active[owner_id] = time.time()
 
 message_queue = asyncio.Queue()
 
@@ -159,7 +161,6 @@ async def userbot_queue_worker():
             message_queue.task_done()
 
 async def on_new_userbot_message(event):
-    if not event.is_private: return
     owner_id = getattr(event.client, 'owner_id', None)
     if not owner_id: return
 
@@ -168,7 +169,12 @@ async def on_new_userbot_message(event):
     
     sender_id = sender.id
     
-    # 2 daqiqa pauza tekshiruvi (Sotuvchi o'zi gaplashayotgan bo'lsa xalaqit bermaslik)
+    # Global online tekshiruvi (Agar profil egasi biron joyda so'nggi 2 daqiqada yozgan bo'lsa - javob qaytarmaydi)
+    global_last_act = owner_last_active.get(owner_id, 0)
+    if time.time() - global_last_act < 120:
+        return
+        
+    # Chatdagi aniq 2 daqiqa tekshiruvi (eskisi ham qoladi)
     last_act = owner_last_active.get((owner_id, sender_id), 0)
     if time.time() - last_act < MAX_SILENCE:
         return
@@ -180,7 +186,26 @@ async def on_new_userbot_message(event):
     has_access, tariff_name, _, _ = await check_user_access(owner_id)
     if not has_access:
         return
+
+    # Guruh/Kanal tekshiruvi
+    is_group = event.is_group or event.is_channel
+    if is_group:
+        if tariff_name != "smm": return
+        if user_data.get("group_reply_enabled", 0) == 0: return
         
+        me = await event.client.get_me()
+        mentioned = False
+        
+        if event.message.mentioned:
+            mentioned = True
+        elif event.message.reply_to_msg_id:
+            reply_msg = await event.message.get_reply_message()
+            if reply_msg and reply_msg.sender_id == me.id:
+                mentioned = True
+                
+        if not mentioned:
+            return
+
     persona = user_data.get('business_persona', 'Biz mijozlarga xizmat ko\'rsatamiz.')
     
     # Audio tekshiruvi
