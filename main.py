@@ -193,7 +193,7 @@ async def cmd_start(message: types.Message):
 
     if is_new:
         # Yangi foydalanuvchi — trial xabari
-        welcome_text = f"""Assalomu alaykum, <b>{full_name}</b>! СЂСџвЂвЂ№
+        welcome_text = f"""Assalomu alaykum, <b>{full_name}</b>! 🔹
 SMM AI Agent platformasiga xush kelibsiz! 🎉
 
 🎁 Sizga <b>3 KUNLIK BEPUL SINOV MUDDATI</b> taqdim etildi!
@@ -201,18 +201,18 @@ SMM AI Agent platformasiga xush kelibsiz! 🎉
 
 Men sizning shaxsiy Telegram profilingizni aqlli <b>Avto-Javob beruvchi Sotuv Menejeriga</b> aylantirib beraman. Mijozlaringizga sizning o'rningizda toza O'zbek tilida, matn va hatto 🎙 Ovozli xabar orqali javob beraman!
 
-СЂСџвЂвЂЎ <i>Profilni ulash va sozlash uchun menyudan foydalaning:</i>"""
+🔹 <i>Profilni ulash va sozlash uchun menyudan foydalaning:</i>"""
     else:
         # Qaytib kelgan foydalanuvchi — holat xabari
         if has_access:
             holat_emoji = "✅"
         else:
             holat_emoji = "⚠️"
-        welcome_text = f"""Xush kelibsiz, <b>{full_name}</b>! СЂСџвЂвЂ№
+        welcome_text = f"""Xush kelibsiz, <b>{full_name}</b>! 🔹
 
 {holat_emoji} Tarif holati: <i>{status_text}</i>
 
-СЂСџвЂвЂЎ <i>Menyudan kerakli bo'limni tanlang:</i>"""
+🔹 <i>Menyudan kerakli bo'limni tanlang:</i>"""
 
     await message.answer(welcome_text, reply_markup=get_main_menu(message.from_user.id))
 
@@ -228,17 +228,17 @@ async def show_tariffs(message: types.Message):
 
 ══════════════════
 💳 <b>To'lov uchun karta:</b> <code>{CARD_NUMBER}</code>
-СЂСџвЂВ¤ <b>Karta egasi:</b> {CARD_OWNER}
+🔹 <b>Karta egasi:</b> {CARD_OWNER}
 ══════════════════
 
-СЂСџвЂвЂЎ <i>Xarid qilish uchun quyidagi tugmalardan birini bosing:</i>"""
+🔹 <i>Xarid qilish uchun quyidagi tugmalardan birini bosing:</i>"""
     await message.answer(text, reply_markup=get_tariffs_keyboard())
 
 async def show_products(message: types.Message):
     prods = await get_products()
     msg = "📦 <b>BIZNING XIZMATLAR VA NARXLAR:</b>\n\n"
     for p in prods:
-        msg += f"СЂСџвЂњРЉ <b>{p['name']}</b>\n💰 Narxi: <code>{p['price']}</code>\n📝 {p['description']}\n📎 <i>{p['details']}</i>\n\n"
+        msg += f"📋 <b>{p['name']}</b>\n💰 Narxi: <code>{p['price']}</code>\n📝 {p['description']}\n📎 <i>{p['details']}</i>\n\n"
     msg += "Savollaringiz bo'lsa, menga to'g'ridan-to'g'ri yozishingiz mumkin! 💬"
     await message.answer(msg, reply_markup=get_products_keyboard())
 
@@ -248,7 +248,7 @@ async def show_profile(message: types.Message):
     has_acc, st_text, days_left, tariff = await check_user_access(user_id)
     ai_status = "✅ Yoqilgan" if user and user.get('ai_enabled') else "❌ O'chirilgan"
     
-    msg = f"""СЂСџвЂВ¤ <b>SHAXSIY PROFILINGIZ</b>
+    msg = f"""🔹 <b>SHAXSIY PROFILINGIZ</b>
 
 🆔 ID: <code>{user_id}</code>
 👤 Ism: <b>{user.get('full_name') if user else ''}</b>
@@ -344,7 +344,7 @@ async def cb_buy_standart(callback: CallbackQuery):
 
 💰 To'lov summasi: <b>{TARIFFS['standart']['price']:,} so'm</b>
 💳 Karta: <code>{CARD_NUMBER}</code>
-СЂСџвЂВ¤ Egasi: <b>{CARD_OWNER}</b>
+🔹 Egasi: <b>{CARD_OWNER}</b>
 
 📸 <i>Iltimos, to'lovni amalga oshirib, to'lov chekining (skrinshot yoki PDF) rasmini shu chatga yuboring!</i>""", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Orqaga", callback_data="btn_tariffs")]]))
     await callback.answer()
@@ -357,7 +357,7 @@ async def cb_buy_smm(callback: CallbackQuery):
 
 💰 To'lov summasi: <b>{TARIFFS['smm']['price']:,} so'm</b>
 💳 Karta: <code>{CARD_NUMBER}</code>
-СЂСџвЂВ¤ Egasi: <b>{CARD_OWNER}</b>
+🔹 Egasi: <b>{CARD_OWNER}</b>
 
 📸 <i>Iltimos, to'lovni amalga oshirib, to'lov chekining (skrinshot yoki PDF) rasmini shu chatga yuboring!</i>""", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Orqaga", callback_data="btn_tariffs")]]))
     await callback.answer()
@@ -397,7 +397,7 @@ async def cb_ignore(callback: CallbackQuery):
     msg = "⏳ <b>KUTILAYOTGAN TO'LOVLAR:</b>\n\n"
     for p in payments:
         msg += f"🆔 <code>#{p['id']}</code> | ID: <code>{p['user_id']}</code>\n📦 {p['tariff_type']} - <b>{p['amount']:,} so'm</b>\n"
-        msg += f"СЂСџвЂвЂ° Tasdiqlash: /approve_{p['id']} | Rad: /reject_{p['id']}\n\n"
+        msg += f"🔹 Tasdiqlash: /approve_{p['id']} | Rad: /reject_{p['id']}\n\n"
     await message.answer(msg)
 
 # ============ TO'LOV CHEKI (PHOTO / PDF) ============
@@ -446,7 +446,7 @@ async def handle_receipt(message: types.Message):
         caption_text = f"""💰 <b>YANGI TO'LOV CHEKI KELDI!</b>
 
 🆔 To'lov ID: <code>#{p_id}</code>
-СЂСџвЂВ¤ Mijoz: <b>{message.from_user.full_name}</b> (@{message.from_user.username or 'yoq'})
+🔹 Mijoz: <b>{message.from_user.full_name}</b> (@{message.from_user.username or 'yoq'})
 🆔 Telegram ID: <code>{user_id}</code>
 📦 Tarif: <b>{t_data['name']}</b>
 💵 Summa: <b>{t_data['price']:,} so'm</b>
@@ -567,7 +567,7 @@ async def btn_link_profile(message: types.Message, state: FSMContext):
 
 AI yordamchisidan foydalanish va profilingizni ulash uchun quyidagi tariflardan birini tanlang:
 
-СЂСџвЂњРЉ <b>1. STANDART TARIF</b> — <code>{TARIFFS['standart']['price']:,} so'm/oy</code> (15 000 so'm)
+📋 <b>1. STANDART TARIF</b> — <code>{TARIFFS['standart']['price']:,} so'm/oy</code> (15 000 so'm)
 РІР‚Сћ 24/7 AI mijozlarga avtomatik matnli javob
 РІР‚Сћ Savdo, xizmatlar va mahsulotlar tavsifi
 
@@ -800,7 +800,7 @@ async def process_client_broadcast(message: types.Message, state: FSMContext):
 # ============ ADMIN PANEL ============
 def get_admin_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="СЂСџвЂТђ Barcha Obunachilar", callback_data="admin_users")],
+        [InlineKeyboardButton(text="🔹 Barcha Obunachilar", callback_data="admin_users")],
         [InlineKeyboardButton(text="⏳ Kutilyotgan To'lovlar", callback_data="admin_payments")],
         [InlineKeyboardButton(text="📢 Reklama Tarqatish", callback_data="admin_broadcast")],
         [InlineKeyboardButton(text="💰 Tarif Narxlari", callback_data="admin_prices")],
@@ -811,7 +811,7 @@ def get_admin_keyboard():
 async def cmd_admin_panel(message: types.Message):
     if message.from_user.id != ADMIN_ID:
         return
-    await message.answer("СЂСџвЂвЂ <b>Boshqaruv Paneliga Xush Kelibsiz!</b>\n\nQuyidagi menyudan kerakli bo'limni tanlang:", reply_markup=get_admin_keyboard())
+    await message.answer("🔹 <b>Boshqaruv Paneliga Xush Kelibsiz!</b>\n\nQuyidagi menyudan kerakli bo'limni tanlang:", reply_markup=get_admin_keyboard())
 
 @dp.callback_query(F.data.startswith("admin_"))
 async def cb_admin_panel(callback: CallbackQuery, state: FSMContext):
@@ -823,7 +823,7 @@ async def cb_admin_panel(callback: CallbackQuery, state: FSMContext):
     if action == "users":
         count = await users_col.count_documents({})
         active = len(load_active_userbots.__globals__['active_userbots'])
-        await callback.message.edit_text(f"СЂСџвЂТђ <b>OBUNACHILAR:</b>\n\nUmumiy botdan foydalanganlar: <b>{count} ta</b>\nHozirda faol ulangan AI'lar: <b>{active} ta</b>", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Orqaga", callback_data="admin_back")]]))
+        await callback.message.edit_text(f"🔹 <b>OBUNACHILAR:</b>\n\nUmumiy botdan foydalanganlar: <b>{count} ta</b>\nHozirda faol ulangan AI'lar: <b>{active} ta</b>", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Orqaga", callback_data="admin_back")]]))
         
     elif action == "broadcast":
         await callback.message.edit_text("📢 <b>REKLAMA TARQATISH:</b>\n\nBotdagi barcha foydalanuvchilarga xabar tarqatish uchun xabaringizni yuboring (Rasm, Video yoki Matn):", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Bekor qilish", callback_data="admin_back")]]))
@@ -837,7 +837,7 @@ async def cb_admin_panel(callback: CallbackQuery, state: FSMContext):
             
         text = f"⏳ <b>KUTILYOTGAN TO'LOVLAR ({len(pending)} ta):</b>\n\n"
         for p in pending:
-            text += f"💳 <b>ID:</b> #{p['id']}\nСЂСџвЂВ¤ <b>Foydalanuvchi:</b> <code>{p['user_id']}</code>\n💰 <b>Summa:</b> {p['amount']:,} so'm ({p['tariff_type'].upper()})\n\n"
+            text += f"💳 <b>ID:</b> #{p['id']}\n🔹 <b>Foydalanuvchi:</b> <code>{p['user_id']}</code>\n💰 <b>Summa:</b> {p['amount']:,} so'm ({p['tariff_type'].upper()})\n\n"
             
         text += "<i>To'lovlarni tasdiqlash uchun oldin kelgan chek rasmiga qarang (Tasdiqlash tugmasi rasm tagida joylashgan). Yoki ID orqali tasdiqlang: /approve_ID</i>"
         await callback.message.edit_text(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Orqaga", callback_data="admin_back")]]))
@@ -853,7 +853,7 @@ async def cb_admin_panel(callback: CallbackQuery, state: FSMContext):
         await callback.message.edit_text(f"📊 <b>TIZIM STATISTIKASI:</b>\n\nMuvaffaqiyatli to'lovlar: <b>{total_payments} ta</b>\nQolgan statistika tez orada qo'shiladi.", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Orqaga", callback_data="admin_back")]]))
         
     elif action == "back":
-        await callback.message.edit_text("СЂСџвЂвЂ <b>Boshqaruv Paneliga Xush Kelibsiz!</b>\n\nQuyidagi menyudan kerakli bo'limni tanlang:", reply_markup=get_admin_keyboard())
+        await callback.message.edit_text("🔹 <b>Boshqaruv Paneliga Xush Kelibsiz!</b>\n\nQuyidagi menyudan kerakli bo'limni tanlang:", reply_markup=get_admin_keyboard())
 
 # Add new State for admin broadcast
 
@@ -1043,7 +1043,7 @@ async def main():
     print("[2/2] Telegram Bot ishga tushmoqda...")
     bot_info = await bot.get_me()
     print(f"✅ BOT TAYYOR: @{bot_info.username} ({bot_info.first_name})")
-    print(f"СЂСџвЂвЂ Admin ID: {ADMIN_ID}")
+    print(f"🔹 Admin ID: {ADMIN_ID}")
     print("🤖 Xabarlar qabul qilinmoqda...")
 
     print("[3/3] Faol profil ulanishlari yuklanmoqda (SaaS)...")
