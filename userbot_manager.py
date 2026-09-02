@@ -43,7 +43,15 @@ async def transcribe_audio_groq(file_path):
 
 async def generate_speech(text, output_file):
     try:
+        # Tildan kelib chiqib ovozni tanlash
         voice = "uz-UZ-MadinaNeural"
+        
+        import re
+        cyrillic_chars = len(re.findall(r'[а-яА-ЯёЁ]', text))
+        if cyrillic_chars > len(text) * 0.2:
+            # Matnda yetarlicha ruscha (kirillcha) harflar bo'lsa
+            voice = "ru-RU-SvetlanaNeural" 
+            
         communicate = edge_tts.Communicate(text, voice)
         await communicate.save(output_file)
         return True
@@ -53,8 +61,11 @@ async def generate_speech(text, output_file):
 
 async def get_ai_reply(prompt, persona_text):
     sys_prompt = (
-        "Sen sotuvchi va xizmat ko'rsatish menejerisan. "
-        "Mijozga qisqa, aniq va hurmat bilan javob ber.\n"
+        "Sen aqlli sotuvchi va xizmat ko'rsatish menejerisan. "
+        "QOIDALAR:\n"
+        "1. Mijoz qaysi tilda yozsa, sening ham javobing xuddi shu tilda bo'lsin (ruscha yozsa ruscha, inglizcha yozsa inglizcha, o'zbekcha yozsa o'zbekcha).\n"
+        "2. Agar o'zbek tilida javob bersang, sof, tabiiy o'zbekcha so'zlashuv tilida, xuddi mahalliy insonlardek (aksentlarsiz va kitobiy bo'lmagan uslubda) javob qaytar.\n"
+        "3. Javoblaring qisqa, aniq va xaridorga qulay bo'lsin.\n\n"
         f"Kompaniya/Sotuvchi haqida: {persona_text}"
     )
     
