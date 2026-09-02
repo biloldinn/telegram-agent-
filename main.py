@@ -277,14 +277,14 @@ async def show_help(message: types.Message):
 
 Bu platforma orqali siz shaxsiy akkauntingizga Sun'iy Intellekt ulab olishingiz mumkin. AI sizning biznesingiz haqidagi ma'lumotlarni yodlab oladi va mijozlaringizga sizning o'rningizga javob qaytaradi.
 
-СЂСџвЂРЃРІР‚РЊСЂСџвЂ™В» <b>Admin bilan bog'lanish:</b> Tizimda muammo bo'lsa yoki tarif sotib olishda savolingiz bo'lsa to'g'ridan-to'g'ri yozing.
+📞 <b>Admin bilan bog'lanish:</b> Tizimda muammo bo'lsa yoki tarif sotib olishda savolingiz bo'lsa to'g'ridan-to'g'ri yozing.
 ♻️ Botni yangilash uchun: /start""", reply_markup=get_main_menu(message.from_user.id))
 
-@dp.message(F.text == "💳 Tariflar")
+@dp.message(F.text == "💎 Tariflar")
 async def btn_tariffs_handler(message: types.Message):
     await show_tariffs(message)
 
-@dp.message(F.text.in_(["СЂСџвЂТђ Do'stlarni taklif qilish", "🎁 Bonus olish", "📦 Xizmatlar"]))
+@dp.message(F.text.in_(["👥 Do'stlarni taklif qilish", "🎁 Bonus olish", "📦 Xizmatlar"]))
 async def btn_referral_handler(message: types.Message):
     user_id = message.from_user.id
     user = await get_user(user_id)
@@ -292,7 +292,7 @@ async def btn_referral_handler(message: types.Message):
     bot_info = await bot.get_me()
     ref_link = f"https://t.me/{bot_info.username}?start={user_id}"
     
-    text = f"""СЂСџвЂТђ <b>DO'STLARNI TAKLIF QILISH (REFERRAL)</b>
+    text = f"""👥 <b>DO'STLARNI TAKLIF QILISH (REFERRAL)</b>
 
 🔗 Sizning taklif havolangiz:
 <code>{ref_link}</code>
@@ -304,11 +304,11 @@ Har <b>5 ta do'stingiz</b> ushbu havola orqali botga kirsa, sizning faol tarifin
 📊 Hozirgacha taklif qilgan do'stlaringiz: <b>{ref_count} ta</b>"""
     await message.answer(text)
 
-@dp.message(F.text == "СЂСџвЂВ¤ Mening Profilim")
+@dp.message(F.text == "👤 Mening Profilim")
 async def btn_profile_handler(message: types.Message):
     await show_profile(message)
 
-@dp.message(F.text == "🤖 AI Sozlamalar")
+@dp.message(F.text == "⚙️ AI Sozlamalar")
 async def btn_ai_settings_handler(message: types.Message):
     await show_ai_settings(message)
 
