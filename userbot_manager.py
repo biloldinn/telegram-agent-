@@ -1,4 +1,4 @@
-﻿import asyncio
+import asyncio
 import os
 import time
 import tempfile
@@ -92,17 +92,72 @@ async def on_outgoing_message(event):
     if owner_id:
         owner_last_active[(owner_id, event.chat_id)] = time.time()
 
+message_queue = asyncio.Queue()
+
+async def userbot_queue_worker():
+    dlog("Navbat tizimi ishga tushdi (Navbatma-navbat ishlash yuboruvchisi).")
+    while True:
+        try:
+            # Kutamiz, navbatdagi xabar kelguncha
+            event, owner_id, sender_id, persona, is_audio, prompt = await message_queue.get()
+            
+            # Anti-spam: Har bir xabarga o'tishdan oldin qo'shimcha pauza
+            await asyncio.sleep(1.5)
+            
+            # O'qilgan qilish (ko'k ptichka)
+            try:
+                await event.client.send_read_acknowledge(event.chat_id)
+            except Exception as e:
+                pass
+                
+            action = 'record-audio' if is_audio else 'typing'
+            async with event.client.action(sender_id, action):
+                
+                # Insoniylik effekti, yozishdan oldin biroz o'ylaydi
+                await asyncio.sleep(2.0)
+                
+                # AI dan javob olish
+                reply_text = await get_ai_reply(prompt, persona)
+                
+                # Yozish simulyatsiyasi (matn uzunligiga qarab)
+                kutish_vaqti = min(len(reply_text) / 20, 5)
+                await asyncio.sleep(kutish_vaqti)
+                
+                if is_audio:
+                    tmp_out = f"temp_audio/out_{sender_id}_{int(time.time())}.ogg"
+                    success = await generate_speech(reply_text, tmp_out)
+                    if success:
+                        await event.client.send_file(sender_id, tmp_out, voice_note=True)
+                        try: os.remove(tmp_out)
+                        except: pass
+                    else:
+                        await event.reply(reply_text)
+                else:
+                    await event.reply(reply_text)
+                    
+            # API ishlaganini sanash
+            await update_user_api(owner_id, 1)
+            
+            # Bitta profil bo'yicha javob berilgandan keyin umumiy tizim 2 soniya dam oladi 
+            # (parallel emas, faqat navbat bilan ishlashi uchun)
+            await asyncio.sleep(2)
+            
+        except Exception as e:
+            dlog(f"Queue worker error: {e}")
+        finally:
+            message_queue.task_done()
+
 async def on_new_userbot_message(event):
     if not event.is_private: return
     owner_id = getattr(event.client, 'owner_id', None)
     if not owner_id: return
 
     sender = await event.get_sender()
-    if sender.bot or sender.is_self: return
+    if not sender or sender.bot or sender.is_self: return
     
     sender_id = sender.id
     
-    # 2 daqiqa pauza
+    # 2 daqiqa pauza tekshiruvi (Sotuvchi o'zi gaplashayotgan bo'lsa xalaqit bermaslik)
     last_act = owner_last_active.get((owner_id, sender_id), 0)
     if time.time() - last_act < MAX_SILENCE:
         return
@@ -117,7 +172,7 @@ async def on_new_userbot_message(event):
         
     persona = user_data.get('business_persona', 'Biz mijozlarga xizmat ko\'rsatamiz.')
     
-    # Check if voice
+    # Audio tekshiruvi
     is_audio = False
     if event.message.voice or (getattr(event.message.media, "document", None) and event.message.media.document.mime_type.startswith("audio")):
         is_audio = True
@@ -125,10 +180,8 @@ async def on_new_userbot_message(event):
     prompt = ""
     if is_audio:
         if tariff_name != "smm":
-            # Ignore voice for standard
             return
             
-        # Typing & Recording Audio action
         async with event.client.action(sender_id, 'record-audio'):
             tmp_dir = "temp_audio"
             os.makedirs(tmp_dir, exist_ok=True)
@@ -147,26 +200,8 @@ async def on_new_userbot_message(event):
         
     if not prompt: return
     
-    # Reply Action
-    action = 'record-audio' if is_audio else 'typing'
-    async with event.client.action(sender_id, action):
-        await asyncio.sleep(2) # insoniylik effekti
-        reply_text = await get_ai_reply(prompt, persona)
-        
-        if is_audio:
-            tmp_out = f"temp_audio/out_{sender_id}_{int(time.time())}.ogg"
-            success = await generate_speech(reply_text, tmp_out)
-            if success:
-                await event.client.send_file(sender_id, tmp_out, voice_note=True)
-                try: os.remove(tmp_out)
-                except: pass
-            else:
-                await event.reply(reply_text)
-        else:
-            await event.reply(reply_text)
-            
-    # API counter
-    await update_user_api(owner_id, 1)
+    # To'g'ridan-to'g'ri javob bermasdan xabarni NAVBATGA qo'shamiz
+    await message_queue.put((event, owner_id, sender_id, persona, is_audio, prompt))
 
 async def on_incoming_call(event):
     if not isinstance(event, UpdatePhoneCall):
@@ -206,7 +241,15 @@ async def start_userbot_from_session(user_id, session_string):
     except Exception as e:
         dlog(f"[{user_id}] Start userbot error: {e}")
 
+# Global worker ishga tushirilganini tekshirish uchun bayroq
+worker_started = False
+
 async def load_active_userbots(users_cursor):
+    global worker_started
+    if not worker_started:
+        asyncio.create_task(userbot_queue_worker())
+        worker_started = True
+
     dlog("Faol userbotlar yuklanmoqda...")
     users = await users_cursor.to_list(length=1000)
     for u in users:
