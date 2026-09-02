@@ -57,7 +57,7 @@ def get_contact_keyboard():
 def get_main_menu(user_id):
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="🔗 Profilni ulash", web_app=types.WebAppInfo(url=f\"{WEBHOOK_URL}/?user_id={user_id}\"))],
+            [KeyboardButton(text="🔗 Profilni ulash (AI)", web_app=types.WebAppInfo(url=f"{WEBHOOK_URL}/?user_id={user_id}"))],
             [KeyboardButton(text="💎 Tariflar"), KeyboardButton(text="👥 Do'stlarni taklif qilish")],
             [KeyboardButton(text="👤 Mening Profilim"), KeyboardButton(text="⚙️ AI Sozlamalar")]
         ],
@@ -69,6 +69,7 @@ def get_tariffs_keyboard():
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="⭐ Standart (15 000 so'm)", callback_data="buy_standart")],
         [InlineKeyboardButton(text="🚀 SMM Pro (25 000 so'm)", callback_data="buy_smm")],
+        [InlineKeyboardButton(text="🎁 3 Soat Bepul AI (Homiylik)", callback_data="claim_sponsor_bonus")],
         [InlineKeyboardButton(text="🔙 Yopish", callback_data="close_menu")]
     ])
 
@@ -368,6 +369,64 @@ async def cb_accept_terms(callback: CallbackQuery):
     
     await callback.message.answer(welcome_text, reply_markup=get_main_menu(user_id))
     await callback.answer("Rahmat! Qoidalarni qabul qildingiz.")
+
+@dp.callback_query(F.data == "claim_sponsor_bonus")
+async def cb_claim_sponsor_bonus(callback: CallbackQuery):
+    settings = await get_settings()
+    sponsor_link = settings.get('sponsor_channel')
+    if not sponsor_link:
+        await callback.answer("Hozircha homiylik kanali mavjud emas.", show_alert=True)
+        return
+    
+    user = await get_user(callback.from_user.id)
+    if user and user.get('used_sponsor_bonus'):
+        await callback.answer("Siz bu bonusdan allaqachon foydalangansiz!", show_alert=True)
+        return
+        
+    text = f"🎁 <b>3 SOAT BEPUL AI</b>\n\nQuyidagi homiy kanalimizga obuna bo'lsangiz, tizim avtomatik 3 soatlik SMM PRO tarifini taqdim etadi!\n\n🔗 Kanal: {sponsor_link}"
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Obuna bo'ldim (Tekshirish)", callback_data="check_sponsor_bonus")],
+        [InlineKeyboardButton(text="🔙 Orqaga", callback_data="btn_tariffs")]
+    ])
+    await callback.message.edit_text(text, reply_markup=markup)
+
+@dp.callback_query(F.data == "check_sponsor_bonus")
+async def cb_check_sponsor_bonus(callback: CallbackQuery):
+    settings = await get_settings()
+    sponsor_link = settings.get('sponsor_channel')
+    if not sponsor_link:
+        await callback.answer("Homiylik kanali mavjud emas.", show_alert=True)
+        return
+        
+    user = await get_user(callback.from_user.id)
+    if user and user.get('used_sponsor_bonus'):
+        await callback.answer("Siz bu bonusdan allaqachon foydalangansiz!", show_alert=True)
+        return
+        
+    channel_username = sponsor_link.split('/')[-1]
+    if not channel_username.startswith('@'):
+        channel_username = '@' + channel_username
+        
+    try:
+        member = await bot.get_chat_member(chat_id=channel_username, user_id=callback.from_user.id)
+        if member.status in ['left', 'kicked']:
+            await callback.answer("Siz kanalga obuna bo'lmagansiz! Iltimos, obuna bo'ling.", show_alert=True)
+            return
+    except Exception as e:
+        await callback.answer(f"Kanalni tekshirishda xatolik! Bot kanalga admin qilinmagan bo'lishi mumkin.", show_alert=True)
+        return
+        
+    # Grant bonus
+    from datetime import datetime, timedelta
+    now = datetime.utcnow()
+    current_expiry = user.get('access_expires_at')
+    if current_expiry and current_expiry > now:
+        new_expiry = current_expiry + timedelta(hours=3)
+    else:
+        new_expiry = now + timedelta(hours=3)
+        
+    await users_col.update_one({'user_id': callback.from_user.id}, {'$set': {'access_expires_at': new_expiry, 'tariff': 'smm', 'used_sponsor_bonus': True}})
+    await callback.message.edit_text("🎉 <b>Tabriklaymiz!</b>\n\nSizga 3 soatlik SMM PRO tarifi taqdim etildi. AI botidan to'liq foydalanishingiz mumkin!", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Asosiy Menyu", callback_data="close_menu")]]))
 
 @dp.callback_query(F.data == "btn_tariffs")
 async def cb_show_tariffs(callback: CallbackQuery):
@@ -798,6 +857,21 @@ async def cb_cancel_client_broadcast(callback: CallbackQuery, state: FSMContext)
     user = await get_user(callback.from_user.id)
     await callback.message.edit_text("🤖 <b>AI Yordamchi Sozlamalari</b>", reply_markup=get_ai_settings_keyboard(user))
 
+@dp.message(LoginState.waiting_for_sponsor_link)
+async def process_admin_sponsor(message: types.Message, state: FSMContext):
+    if message.from_user.id != ADMIN_ID: return
+    link = message.text.strip()
+    if link.lower() == "ochirish":
+        await update_settings(sponsor_channel=None)
+        await message.answer("Homiylik kanali o'chirildi.", reply_markup=get_admin_keyboard())
+    else:
+        if not link.startswith('@') and not link.startswith('http'):
+            await message.answer("Xato! Havola @Kanalim yoki https://t.me/Kanalim ko'rinishida bo'lishi kerak.")
+            return
+        await update_settings(sponsor_channel=link)
+        await message.answer(f"Homiylik kanali saqlandi: {link}", reply_markup=get_admin_keyboard())
+    await state.clear()
+
 @dp.message(LoginState.waiting_for_client_broadcast)
 async def process_client_broadcast(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
@@ -842,6 +916,7 @@ def get_admin_keyboard():
         [InlineKeyboardButton(text="🔹 Barcha Obunachilar", callback_data="admin_users")],
         [InlineKeyboardButton(text="⏳ Kutilyotgan To'lovlar", callback_data="admin_payments")],
         [InlineKeyboardButton(text="📢 Reklama Tarqatish", callback_data="admin_broadcast")],
+        [InlineKeyboardButton(text="🎁 Homiylik Kanalini kiritish", callback_data="admin_sponsor")],
         [InlineKeyboardButton(text="💰 Tarif Narxlari", callback_data="admin_prices")],
         [InlineKeyboardButton(text="📊 Umumiy Statistika", callback_data="admin_stats")]
     ])
@@ -881,6 +956,10 @@ async def cb_admin_panel(callback: CallbackQuery, state: FSMContext):
         text += "<i>To'lovlarni tasdiqlash uchun oldin kelgan chek rasmiga qarang (Tasdiqlash tugmasi rasm tagida joylashgan). Yoki ID orqali tasdiqlang: /approve_ID</i>"
         await callback.message.edit_text(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Orqaga", callback_data="admin_back")]]))
 
+    elif action == "sponsor":
+        await callback.message.edit_text("🎁 <b>HOMIYLIK KANALI:</b>\n\nIltimos, kanal havolasini yuboring (masalan: @Kanalim yoki https://t.me/Kanalim):\n<i>O'chirish uchun 'ochirish' deb yozing</i>", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Bekor qilish", callback_data="admin_back")]]))
+        await state.set_state(LoginState.waiting_for_sponsor_link)
+        
     elif action == "prices":
         settings = await get_settings()
         sp = settings.get('standard_price', 150000)

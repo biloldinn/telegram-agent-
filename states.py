@@ -1,4 +1,4 @@
-﻿from aiogram.fsm.state import State, StatesGroup
+from aiogram.fsm.state import State, StatesGroup
 
 class LoginState(StatesGroup):
     waiting_for_admin_broadcast = State()
@@ -9,3 +9,4 @@ class LoginState(StatesGroup):
     waiting_for_channel_link = State()
     waiting_for_broadcast = State()
     waiting_for_client_broadcast = State()
+    waiting_for_sponsor_link = State()

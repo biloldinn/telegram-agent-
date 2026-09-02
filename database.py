@@ -1,4 +1,4 @@
-﻿import sys
+import sys
 import os
 
 # Windows UTF-8 encoding fix
@@ -285,16 +285,18 @@ settings_col = db['settings']
 async def get_settings():
     s = await settings_col.find_one({'_id': 'global_settings'})
     if not s:
-        s = {'standard_price': 150000, 'smm_price': 300000}
+        s = {'standard_price': 150000, 'smm_price': 300000, 'sponsor_channel': None}
         await settings_col.insert_one({'_id': 'global_settings', **s})
     return s
 
-async def update_settings(standard_price=None, smm_price=None):
+async def update_settings(standard_price=None, smm_price=None, sponsor_channel=None):
     update_data = {}
     if standard_price is not None:
         update_data['standard_price'] = standard_price
     if smm_price is not None:
         update_data['smm_price'] = smm_price
+    if sponsor_channel is not None:
+        update_data['sponsor_channel'] = sponsor_channel
     if update_data:
         await settings_col.update_one({'_id': 'global_settings'}, {'$set': update_data}, upsert=True)
 
