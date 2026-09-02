@@ -76,9 +76,9 @@ def get_ai_settings_keyboard(user: dict):
     is_enabled = bool(user.get("ai_enabled", 1))
     group_reply = bool(user.get("group_reply_enabled", 0))
     
-    status = "СЂСџСџСћ YOQILGAN" if is_enabled else "СЂСџвЂќТ‘ O'CHIRILGAN"
+    status = "🟢 YOQILGAN" if is_enabled else "🔴 O'CHIRILGAN"
     action_data = "ai_toggle_off" if is_enabled else "ai_toggle_on"
-    action_text = "СЂСџвЂќТ‘ O'chirish" if is_enabled else "СЂСџСџСћ Yoqish"
+    action_text = "🔴 O'chirish" if is_enabled else "🟢 Yoqish"
     
     grp_status = "✅ Guruhlarda: Yoqilgan" if group_reply else "❌ Guruhlarda: O'chirilgan"
     grp_action = "grp_toggle_off" if group_reply else "grp_toggle_on"
@@ -104,7 +104,7 @@ def get_products_keyboard():
 async def get_ai_response(text: str, user_id: int) -> str:
     user = await get_user(user_id)
     if not user or not user.get("ai_enabled", 1):
-        return "СЂСџВ¤вЂ“ <b>AI assistent o'chirilgan.</b>\nQayta yoqish uchun pastdagi menyudan <i>AI Sozlamalar</i> ni tanlang."
+        return "🤖 <b>AI assistent o'chirilgan.</b>\nQayta yoqish uchun pastdagi menyudan <i>AI Sozlamalar</i> ni tanlang."
 
     has_access, status_text, days_left, tariff = await check_user_access(user_id)
 
@@ -190,22 +190,22 @@ async def cmd_start(message: types.Message):
     has_access, status_text, days_left, tariff = await check_user_access(user_id)
 
     if is_new:
-        # Yangi foydalanuvchi РІР‚вЂќ trial xabari
+        # Yangi foydalanuvchi — trial xabari
         welcome_text = f"""Assalomu alaykum, <b>{full_name}</b>! СЂСџвЂвЂ№
-SMM AI Agent platformasiga xush kelibsiz! СЂСџР‹вЂ°
+SMM AI Agent platformasiga xush kelibsiz! 🎉
 
-СЂСџР‹Рѓ Sizga <b>3 KUNLIK BEPUL SINOV MUDDATI</b> taqdim etildi!
+🎁 Sizga <b>3 KUNLIK BEPUL SINOV MUDDATI</b> taqdim etildi!
 📊 Holat: <i>{status_text}</i>
 
-Men sizning shaxsiy Telegram profilingizni aqlli <b>Avto-Javob beruvchi Sotuv Menejeriga</b> aylantirib beraman. Mijozlaringizga sizning o'rningizda toza O'zbek tilida, matn va hatto СЂСџР‹в„ў Ovozli xabar orqali javob beraman!
+Men sizning shaxsiy Telegram profilingizni aqlli <b>Avto-Javob beruvchi Sotuv Menejeriga</b> aylantirib beraman. Mijozlaringizga sizning o'rningizda toza O'zbek tilida, matn va hatto 🎙 Ovozli xabar orqali javob beraman!
 
 СЂСџвЂвЂЎ <i>Profilni ulash va sozlash uchun menyudan foydalaning:</i>"""
     else:
-        # Qaytib kelgan foydalanuvchi РІР‚вЂќ holat xabari
+        # Qaytib kelgan foydalanuvchi — holat xabari
         if has_access:
             holat_emoji = "✅"
         else:
-            holat_emoji = "РІС™В РїС‘РЏ"
+            holat_emoji = "⚠️"
         welcome_text = f"""Xush kelibsiz, <b>{full_name}</b>! СЂСџвЂвЂ№
 
 {holat_emoji} Tarif holati: <i>{status_text}</i>
@@ -218,16 +218,16 @@ Men sizning shaxsiy Telegram profilingizni aqlli <b>Avto-Javob beruvchi Sotuv Me
 async def show_tariffs(message: types.Message):
     text = f"""💳 <b>TARIF REJALARI VA TO'LOV</b>
 
-⭐ <b>1. STANDART TARIF</b> РІР‚вЂќ <code>{TARIFFS['standart']['price']:,} so'm/oy</code>
-{chr(10).join(['РІвЂ“Р„РїС‘РЏ ' + f for f in TARIFFS['standart']['features']])}
+⭐ <b>1. STANDART TARIF</b> — <code>{TARIFFS['standart']['price']:,} so'm/oy</code>
+{chr(10).join(['▪️ ' + f for f in TARIFFS['standart']['features']])}
 
-🚀 <b>2. SMM PRO TARIFI</b> РІР‚вЂќ <code>{TARIFFS['smm']['price']:,} so'm/oy</code>
-{chr(10).join(['РІвЂ“Р„РїС‘РЏ ' + f for f in TARIFFS['smm']['features']])}
+🚀 <b>2. SMM PRO TARIFI</b> — <code>{TARIFFS['smm']['price']:,} so'm/oy</code>
+{chr(10).join(['▪️ ' + f for f in TARIFFS['smm']['features']])}
 
-РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’
+══════════════════
 💳 <b>To'lov uchun karta:</b> <code>{CARD_NUMBER}</code>
 СЂСџвЂВ¤ <b>Karta egasi:</b> {CARD_OWNER}
-РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’РІвЂўС’
+══════════════════
 
 СЂСџвЂвЂЎ <i>Xarid qilish uchun quyidagi tugmalardan birini bosing:</i>"""
     await message.answer(text, reply_markup=get_tariffs_keyboard())
@@ -236,8 +236,8 @@ async def show_products(message: types.Message):
     prods = await get_products()
     msg = "📦 <b>BIZNING XIZMATLAR VA NARXLAR:</b>\n\n"
     for p in prods:
-        msg += f"СЂСџвЂњРЉ <b>{p['name']}</b>\n💰 Narxi: <code>{p['price']}</code>\n📝 {p['description']}\nСЂСџвЂњвЂ№ <i>{p['details']}</i>\n\n"
-    msg += "Savollaringiz bo'lsa, menga to'g'ridan-to'g'ri yozishingiz mumkin! СЂСџвЂ™В¬"
+        msg += f"СЂСџвЂњРЉ <b>{p['name']}</b>\n💰 Narxi: <code>{p['price']}</code>\n📝 {p['description']}\n📎 <i>{p['details']}</i>\n\n"
+    msg += "Savollaringiz bo'lsa, menga to'g'ridan-to'g'ri yozishingiz mumkin! 💬"
     await message.answer(msg, reply_markup=get_products_keyboard())
 
 async def show_profile(message: types.Message):
@@ -248,12 +248,12 @@ async def show_profile(message: types.Message):
     
     msg = f"""СЂСџвЂВ¤ <b>SHAXSIY PROFILINGIZ</b>
 
-СЂСџвЂ вЂќ ID: <code>{user_id}</code>
-СЂСџвЂњвЂє Ism: <b>{user.get('full_name') if user else ''}</b>
+🆔 ID: <code>{user_id}</code>
+👤 Ism: <b>{user.get('full_name') if user else ''}</b>
 
 📦 Faol tarif: <b>{tariff.upper()}</b>
-СЂСџвЂњвЂ¦ Holat: <i>{st_text}</i>
-СЂСџВ¤вЂ“ AI Yordamchi: <b>{ai_status}</b>
+📅 Holat: <i>{st_text}</i>
+🤖 AI Yordamchi: <b>{ai_status}</b>
 
 <i>Qo'shimcha xizmatlar uchun tariflarni ko'rib chiqing.</i>"""
     await message.answer(msg)
@@ -264,7 +264,7 @@ async def show_ai_settings(message: types.Message):
         await message.answer("❌ Profil topilmadi. Iltimos, /start buyrug'ini bosing.")
         return
     await message.answer(
-        "СЂСџВ¤вЂ“ <b>AI Yordamchi Sozlamalari</b>\n\nBu yerdan sun'iy intellekt javob berishini boshqarishingiz mumkin.",
+        "🤖 <b>AI Yordamchi Sozlamalari</b>\n\nBu yerdan sun'iy intellekt javob berishini boshqarishingiz mumkin.",
         reply_markup=get_ai_settings_keyboard(user)
     )
 
@@ -273,18 +273,18 @@ async def show_ai_settings(message: types.Message):
 
 
 async def show_help(message: types.Message):
-    await message.answer("""РІСњвЂњ <b>YORDAM MARKAZI</b>
+    await message.answer("""✔️ <b>YORDAM MARKAZI</b>
 
 Bu platforma orqali siz shaxsiy akkauntingizga Sun'iy Intellekt ulab olishingiz mumkin. AI sizning biznesingiz haqidagi ma'lumotlarni yodlab oladi va mijozlaringizga sizning o'rningizga javob qaytaradi.
 
 СЂСџвЂРЃРІР‚РЊСЂСџвЂ™В» <b>Admin bilan bog'lanish:</b> Tizimda muammo bo'lsa yoki tarif sotib olishda savolingiz bo'lsa to'g'ridan-to'g'ri yozing.
-РІв„ўВ»РїС‘РЏ Botni yangilash uchun: /start""", reply_markup=get_main_menu(message.from_user.id))
+♻️ Botni yangilash uchun: /start""", reply_markup=get_main_menu(message.from_user.id))
 
 @dp.message(F.text == "💳 Tariflar")
 async def btn_tariffs_handler(message: types.Message):
     await show_tariffs(message)
 
-@dp.message(F.text.in_(["СЂСџвЂТђ Do'stlarni taklif qilish", "СЂСџР‹Рѓ Bonus olish", "📦 Xizmatlar"]))
+@dp.message(F.text.in_(["СЂСџвЂТђ Do'stlarni taklif qilish", "🎁 Bonus olish", "📦 Xizmatlar"]))
 async def btn_referral_handler(message: types.Message):
     user_id = message.from_user.id
     user = await get_user(user_id)
@@ -297,7 +297,7 @@ async def btn_referral_handler(message: types.Message):
 🔗 Sizning taklif havolangiz:
 <code>{ref_link}</code>
 
-СЂСџР‹Рѓ <b>Bonus shartlari:</b>
+🎁 <b>Bonus shartlari:</b>
 Har <b>5 ta do'stingiz</b> ushbu havola orqali botga kirsa, sizning faol tarifingizga <b>avtomatik ravishda 1 KUN BONUS</b> qo'shiladi!
 <i>(Eslatma: Bonus ishlashi uchun sizda faol pullik tarif bo'lishi kerak).</i>
 
@@ -308,11 +308,11 @@ Har <b>5 ta do'stingiz</b> ushbu havola orqali botga kirsa, sizning faol tarifin
 async def btn_profile_handler(message: types.Message):
     await show_profile(message)
 
-@dp.message(F.text == "СЂСџВ¤вЂ“ AI Sozlamalar")
+@dp.message(F.text == "🤖 AI Sozlamalar")
 async def btn_ai_settings_handler(message: types.Message):
     await show_ai_settings(message)
 
-@dp.message(F.text == "СЂСџвЂњС› Yordam")
+@dp.message(F.text == "ℹ️ Yordam")
 async def btn_help_handler(message: types.Message):
     await show_help(message)
 
@@ -390,11 +390,11 @@ async def cb_ignore(callback: CallbackQuery):
         return
     payments = await get_pending_payments()
     if not payments:
-        await message.answer("СЂСџвЂњВ­ Kutilayotgan to'lovlar yo'q.")
+        await message.answer("📭 Kutilayotgan to'lovlar yo'q.")
         return
     msg = "⏳ <b>KUTILAYOTGAN TO'LOVLAR:</b>\n\n"
     for p in payments:
-        msg += f"СЂСџвЂ вЂќ <code>#{p['id']}</code> | ID: <code>{p['user_id']}</code>\n📦 {p['tariff_type']} - <b>{p['amount']:,} so'm</b>\n"
+        msg += f"🆔 <code>#{p['id']}</code> | ID: <code>{p['user_id']}</code>\n📦 {p['tariff_type']} - <b>{p['amount']:,} so'm</b>\n"
         msg += f"СЂСџвЂвЂ° Tasdiqlash: /approve_{p['id']} | Rad: /reject_{p['id']}\n\n"
     await message.answer(msg)
 
@@ -430,7 +430,7 @@ async def handle_receipt(message: types.Message):
 
 📦 Tarif: <b>{t_data['name']}</b>
 💰 Summa: <b>{t_data['price']:,} so'm</b>
-СЂСџвЂ вЂќ To'lov ID: <code>#{p_id}</code>
+🆔 To'lov ID: <code>#{p_id}</code>
 ⏳ Holat: <b>Admin tekshirmoqda. Tez orada tasdiqlanadi!</b>""")
 
         markup = InlineKeyboardMarkup(
@@ -443,11 +443,11 @@ async def handle_receipt(message: types.Message):
         )
         caption_text = f"""💰 <b>YANGI TO'LOV CHEKI KELDI!</b>
 
-СЂСџвЂ вЂќ To'lov ID: <code>#{p_id}</code>
+🆔 To'lov ID: <code>#{p_id}</code>
 СЂСџвЂВ¤ Mijoz: <b>{message.from_user.full_name}</b> (@{message.from_user.username or 'yoq'})
-СЂСџвЂ вЂќ Telegram ID: <code>{user_id}</code>
+🆔 Telegram ID: <code>{user_id}</code>
 📦 Tarif: <b>{t_data['name']}</b>
-СЂСџвЂ™Вµ Summa: <b>{t_data['price']:,} so'm</b>
+💵 Summa: <b>{t_data['price']:,} so'm</b>
 
 ✅ Tasdiqlash: /approve_{p_id}
 ❌ Rad etish: /reject_{p_id}"""
@@ -486,7 +486,7 @@ async def cb_admin_approve(callback: CallbackQuery):
         if p and p.get('status') == 'pending':
             await update_payment_status(pid, 'approved')
             await activate_tariff(p['user_id'], p['tariff_type'], days=30)
-            await bot.send_message(p['user_id'], f"СЂСџР‹вЂ° <b>TO'LOVINGIZ TASDIQLANDI!</b>\n\n📦 <b>{p['tariff_type'].upper()}</b> tarifi 30 kunga faollashtirildi!\nProfilingizga AI muvaffaqiyatli ulandi.")
+            await bot.send_message(p['user_id'], f"🎉 <b>TO'LOVINGIZ TASDIQLANDI!</b>\n\n📦 <b>{p['tariff_type'].upper()}</b> tarifi 30 kunga faollashtirildi!\nProfilingizga AI muvaffaqiyatli ulandi.")
             try:
                 await callback.message.edit_caption(caption=(callback.message.caption or "") + "\n\n✅ <b>TASDIQLANDI!</b>", reply_markup=None)
             except Exception:
@@ -561,17 +561,17 @@ async def btn_link_profile(message: types.Message, state: FSMContext):
     has_access, status_text, days_left, tariff = await check_user_access(user_id)
     
     if not has_access:
-        text = f"""РІС™В РїС‘РЏ <b>Sinov muddatingiz yoki tarifingiz tugagan!</b>
+        text = f"""⚠️ <b>Sinov muddatingiz yoki tarifingiz tugagan!</b>
 
 AI yordamchisidan foydalanish va profilingizni ulash uchun quyidagi tariflardan birini tanlang:
 
-СЂСџвЂњРЉ <b>1. STANDART TARIF</b> РІР‚вЂќ <code>{TARIFFS['standart']['price']:,} so'm/oy</code> (15 000 so'm)
+СЂСџвЂњРЉ <b>1. STANDART TARIF</b> — <code>{TARIFFS['standart']['price']:,} so'm/oy</code> (15 000 so'm)
 РІР‚Сћ 24/7 AI mijozlarga avtomatik matnli javob
 РІР‚Сћ Savdo, xizmatlar va mahsulotlar tavsifi
 
-🚀 <b>2. SMM PRO TARIFI</b> РІР‚вЂќ <code>{TARIFFS['smm']['price']:,} so'm/oy</code> (25 000 so'm)
+🚀 <b>2. SMM PRO TARIFI</b> — <code>{TARIFFS['smm']['price']:,} so'm/oy</code> (25 000 so'm)
 РІР‚Сћ STANDART tarifidagi barcha imkoniyatlar
-РІР‚Сћ СЂСџР‹в„ў Ovozli xabarlarga ovoz bilan javob berish (Audio)
+РІР‚Сћ 🎙 Ovozli xabarlarga ovoz bilan javob berish (Audio)
 РІР‚Сћ 📊 SMM va reklama yuborish statistikasi
 
 <i>To'lov qilish uchun pastdagi kerakli tarif tugmasini bosing:</i>"""
@@ -721,7 +721,7 @@ async def cb_client_broadcast(callback: CallbackQuery, state: FSMContext):
     user_id = callback.from_user.id
     has_access, _, _, tariff = await check_user_access(user_id)
     if tariff != 'smm':
-        await callback.answer("РІС™В РїС‘РЏ Bu xususiyat faqat SMM PRO tarifida mavjud!", show_alert=True)
+        await callback.answer("⚠️ Bu xususiyat faqat SMM PRO tarifida mavjud!", show_alert=True)
         return
         
     await callback.message.edit_text("📢 <b>O'z mijozlaringizga xabar tarqatish:</b>\n\nSizning ushbu akkauntingizga oldin yozgan barcha foydalanuvchilarga avtomatik xabar (matn yoki ovozli) tarqatamiz.\n\nIltimos, tarqatmoqchi bo'lgan xabaringizni yuboring (Yoki Bekor qilishni bosing):", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Bekor qilish", callback_data="cancel_client_broadcast")]]))
@@ -744,9 +744,9 @@ async def cb_show_stats(callback: CallbackQuery):
         d_str = b['date'].strftime('%Y-%m-%d %H:%M')
         sc = b.get('sent_count', 0)
         total_sent += sc
-        text += f"СЂСџвЂњвЂ¦ {d_str} - <b>{sc} ta</b> mijozga yetkazildi\n"
+        text += f"📅 {d_str} - <b>{sc} ta</b> mijozga yetkazildi\n"
         
-    text += f"\nСЂСџРЏвЂ  JAMI YETKAZILGAN XABARLAR: <b>{total_sent} ta</b>\n"
+    text += f"\n🏆 JAMI YETKAZILGAN XABARLAR: <b>{total_sent} ta</b>\n"
     text += "\n<i>Eslatma: Qiziqqan mijozlar bot orqali bevosita yozganda AI ular bilan savdo qilib yozishishda davom etadi.</i>"
     
     await callback.message.edit_text(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Orqaga", callback_data="cancel_client_broadcast")]]))
@@ -755,14 +755,14 @@ async def cb_show_stats(callback: CallbackQuery):
 async def cb_cancel_client_broadcast(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     user = await get_user(callback.from_user.id)
-    await callback.message.edit_text("СЂСџВ¤вЂ“ <b>AI Yordamchi Sozlamalari</b>", reply_markup=get_ai_settings_keyboard(user))
+    await callback.message.edit_text("🤖 <b>AI Yordamchi Sozlamalari</b>", reply_markup=get_ai_settings_keyboard(user))
 
 @dp.message(LoginState.waiting_for_client_broadcast)
 async def process_client_broadcast(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
     
     if user_id not in load_active_userbots.__globals__['active_userbots']:
-        await message.answer("РІС™В РїС‘РЏ Sizning profilingiz hozircha ulanmagan. Iltimos oldin 'Profilni ulash' orqali ulaning.")
+        await message.answer("⚠️ Sizning profilingiz hozircha ulanmagan. Iltimos oldin 'Profilni ulash' orqali ulaning.")
         await state.clear()
         return
         
@@ -914,7 +914,7 @@ async def handle_text(message: types.Message):
                 if p and p['status'] == 'pending':
                     await update_payment_status(pid, 'approved')
                     await activate_tariff(p['user_id'], p['tariff_type'], days=30)
-                    await bot.send_message(p['user_id'], f"СЂСџР‹вЂ° <b>TO'LOVINGIZ TASDIQLANDI!</b>\n\n📦 <b>{p['tariff_type'].upper()}</b> tarifi 30 kunga faollashtirildi!\nBarcha savollaringizga mamnuniyat bilan javob beraman.")
+                    await bot.send_message(p['user_id'], f"🎉 <b>TO'LOVINGIZ TASDIQLANDI!</b>\n\n📦 <b>{p['tariff_type'].upper()}</b> tarifi 30 kunga faollashtirildi!\nBarcha savollaringizga mamnuniyat bilan javob beraman.")
                     await message.answer(f"✅ <code>#{pid}</code> to'lov tasdiqlandi!")
                 else:
                     await message.answer("❌ To'lov topilmadi yoki ko'rib chiqilgan.")
@@ -1008,7 +1008,7 @@ async def check_expired_trials_cron():
                                 [InlineKeyboardButton(text="💳 Tarifni uzaytirish", callback_data="btn_tariffs")]
                             ])
                             text = (
-                                "РІС™В РїС‘РЏ <b>TARIFINGIZ MUDDATI TUGADI!</b>\n\n"
+                                "⚠️ <b>TARIFINGIZ MUDDATI TUGADI!</b>\n\n"
                                 f"Hurmatli <b>{u.get('full_name', 'Foydalanuvchi')}</b>, sizning 30 kunlik <b>{u.get('tariff_type', '').upper()}</b> tarifingiz muddati o'z nihoyasiga yetdi.\n\n"
                                 "AI yordamchisi profilingizda ishlashni to'xtatdi. Xizmatni davom ettirish uchun tarifni yangilang!"
                             )
@@ -1042,7 +1042,7 @@ async def main():
     bot_info = await bot.get_me()
     print(f"✅ BOT TAYYOR: @{bot_info.username} ({bot_info.first_name})")
     print(f"СЂСџвЂвЂ Admin ID: {ADMIN_ID}")
-    print("СЂСџВ¤вЂ“ Xabarlar qabul qilinmoqda...")
+    print("🤖 Xabarlar qabul qilinmoqda...")
 
     print("[3/3] Faol profil ulanishlari yuklanmoqda (SaaS)...")
     cursor = users_col.find({})
@@ -1053,8 +1053,8 @@ async def main():
     asyncio.create_task(start_web_server(bot))
 
     if os.environ.get("VERCEL"):
-        # Vercel serverless РІР‚вЂќ faqat webhook orqali ishlaydi, polling yo'q
-        print("СЂСџРЉС’ VERCEL MODE: Polling o'chirilgan, faqat webhook.")
+        # Vercel serverless — faqat webhook orqali ishlaydi, polling yo'q
+        print("📡 VERCEL MODE: Polling o'chirilgan, faqat webhook.")
         port = int(os.environ.get("PORT", 8080))
         try:
             from aiohttp import web as aio_web
@@ -1072,11 +1072,11 @@ async def main():
             await asyncio.sleep(3600)
     elif os.environ.get("USERBOTS_ONLY"):
         # Faqat userbot daemon rejimi (lokal kompyuter uchun)
-        print("СЂСџВ¤вЂ“ USERBOT ONLY MODE: Polling o'chirilgan.")
+        print("🤖 USERBOT ONLY MODE: Polling o'chirilgan.")
         while True:
             await asyncio.sleep(3600)
     else:
-        # To'liq rejim: Railway yoki lokal РІР‚вЂќ polling + userbotlar birga ishlaydi
+        # To'liq rejim: Railway yoki lokal — polling + userbotlar birga ishlaydi
         print("🚀 TO'LIQ REJIM: Bot polling + Userbotlar birga ishlamoqda.")
         await start_polling_loop()
 
