@@ -3,13 +3,11 @@ import asyncio
 from aiohttp import web
 from telethon import TelegramClient
 from telethon.sessions import StringSession
-from config import WEBHOOK_URL
+from config import WEBHOOK_URL, API_ID, API_HASH
 from database import users_col, get_user
 
 routes = web.RouteTableDef()
 bot = None
-API_ID = 26500431
-API_HASH = "80fcefe5e69bf1262dce02b0c1b48b94"
 
 pending_logins = {}
 
