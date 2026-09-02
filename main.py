@@ -57,7 +57,7 @@ def get_contact_keyboard():
 def get_main_menu(user_id):
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="🔗 Profilni ulash", web_app=types.WebAppInfo(url=f"https://telegram-agent-production-f1a8.up.railway.app/?user_id={user_id}"))],
+            [KeyboardButton(text="🔗 Profilni ulash", web_app=types.WebAppInfo(url=f\"{WEBHOOK_URL}/?user_id={user_id}\"))],
             [KeyboardButton(text="💎 Tariflar"), KeyboardButton(text="👥 Do'stlarni taklif qilish")],
             [KeyboardButton(text="👤 Mening Profilim"), KeyboardButton(text="⚙️ AI Sozlamalar")]
         ],
@@ -350,10 +350,23 @@ async def cmd_hlp(m: types.Message): await show_help(m)
 # ============ CALLBACK QUERIES (TUGMALAR) ============
 @dp.callback_query(F.data == "accept_terms")
 async def cb_accept_terms(callback: CallbackQuery):
-    await users_col.update_one({'user_id': callback.from_user.id}, {'$set': {'agreed_to_terms': True}})
+    user_id = callback.from_user.id
+    full_name = callback.from_user.full_name or ""
+    await users_col.update_one({'user_id': user_id}, {'$set': {'agreed_to_terms': True}})
     await callback.message.delete()
-    # Shunchaki start komandasini qayta chaqiramiz
-    await cmd_start(callback.message)
+    
+    has_access, status_text, days_left, tariff = await check_user_access(user_id)
+    holat_emoji = "✅" if has_access else "⚠️"
+    
+    welcome_text = f"""Xush kelibsiz, <b>{full_name}</b>! 🔹
+
+{holat_emoji} Tarif holati: <i>{status_text}</i>
+
+⚠️ **ESLATMA:** Agar profilni qayta ulayotgan bo'lsangiz, Telegramdan keladigan xabardagi **«Ha, bu menman»** tugmasini bosishni unutmang!
+
+🔹 <i>Menyudan kerakli bo'limni tanlang:</i>"""
+    
+    await callback.message.answer(welcome_text, reply_markup=get_main_menu(user_id))
     await callback.answer("Rahmat! Qoidalarni qabul qildingiz.")
 
 @dp.callback_query(F.data == "btn_tariffs")
