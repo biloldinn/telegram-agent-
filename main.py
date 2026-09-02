@@ -282,7 +282,7 @@ Bu platforma orqali siz shaxsiy akkauntingizga Sun'iy Intellekt ulab olishingiz 
 📞 <b>Admin bilan bog'lanish:</b> Tizimda muammo bo'lsa yoki tarif sotib olishda savolingiz bo'lsa to'g'ridan-to'g'ri yozing.
 ♻️ Botni yangilash uchun: /start""", reply_markup=get_main_menu(message.from_user.id))
 
-@dp.message(F.text == "💎 Tariflar")
+@dp.message(F.text.endswith("Tariflar"))
 async def btn_tariffs_handler(message: types.Message):
     await show_tariffs(message)
 
@@ -306,15 +306,15 @@ Har <b>5 ta do'stingiz</b> ushbu havola orqali botga kirsa, sizning faol tarifin
 📊 Hozirgacha taklif qilgan do'stlaringiz: <b>{ref_count} ta</b>"""
     await message.answer(text)
 
-@dp.message(F.text == "👤 Mening Profilim")
+@dp.message(F.text.endswith("Mening Profilim"))
 async def btn_profile_handler(message: types.Message):
     await show_profile(message)
 
-@dp.message(F.text == "⚙️ AI Sozlamalar")
+@dp.message(F.text.endswith("AI Sozlamalar"))
 async def btn_ai_settings_handler(message: types.Message):
     await show_ai_settings(message)
 
-@dp.message(F.text == "ℹ️ Yordam")
+@dp.message(F.text.endswith("Yordam"))
 async def btn_help_handler(message: types.Message):
     await show_help(message)
 
