@@ -136,6 +136,10 @@ async def userbot_queue_worker():
                 kutish_vaqti = min(len(reply_text) / 20, 5)
                 await asyncio.sleep(kutish_vaqti)
                 
+                # HTML taglarni tozalash
+                reply_text = reply_text.replace('<ol>', '').replace('</ol>', '').replace('<ul>', '').replace('</ul>', '')
+                reply_text = reply_text.replace('<li>', '• ').replace('</li>', '\n').replace('<br>', '\n').replace('**', '<b>')
+                
                 if is_audio:
                     tmp_out = f"temp_audio/out_{sender_id}_{int(time.time())}.ogg"
                     success = await generate_speech(reply_text, tmp_out)
@@ -144,9 +148,14 @@ async def userbot_queue_worker():
                         try: os.remove(tmp_out)
                         except: pass
                     else:
-                        await event.reply(reply_text)
+                        await event.reply(reply_text, parse_mode='html')
                 else:
-                    await event.reply(reply_text)
+                    try:
+                        await event.reply(reply_text, parse_mode='html')
+                    except Exception:
+                        import re
+                        safe_text = re.sub(r'<[^>]+>', '', reply_text)
+                        await event.reply(safe_text)
                     
             # API ishlaganini sanash
             await update_user_api(owner_id, 1)

@@ -1,0 +1,17 @@
+Line 196: welcome_text = f"""Assalomu alaykum, <b>{full_name}</b>! СЂСџвЂвЂ№
+Line 204: СЂСџвЂвЂЎ <i>Profilni ulash va sozlash uchun menyudan foydalaning:</i>"""
+Line 211: welcome_text = f"""Xush kelibsiz, <b>{full_name}</b>! СЂСџвЂвЂ№
+Line 215: СЂСџвЂвЂЎ <i>Menyudan kerakli bo'limni tanlang:</i>"""
+Line 231: СЂСџвЂВ¤ <b>Karta egasi:</b> {CARD_OWNER}
+Line 234: СЂСџвЂвЂЎ <i>Xarid qilish uchun quyidagi tugmalardan birini bosing:</i>"""
+Line 251: msg = f"""СЂСџвЂВ¤ <b>SHAXSIY PROFILINGIZ</b>
+Line 347: СЂСџвЂВ¤ Egasi: <b>{CARD_OWNER}</b>
+Line 360: СЂСџвЂВ¤ Egasi: <b>{CARD_OWNER}</b>
+Line 400: msg += f"СЂСџвЂвЂ° Tasdiqlash: /approve_{p['id']} | Rad: /reject_{p['id']}\n\n"
+Line 449: СЂСџвЂВ¤ Mijoz: <b>{message.from_user.full_name}</b> (@{message.from_user.username or 'yoq'})
+Line 803: [InlineKeyboardButton(text="СЂСџвЂТђ Barcha Obunachilar", callback_data="admin_users")],
+Line 814: await message.answer("СЂСџвЂвЂ <b>Boshqaruv Paneliga Xush Kelibsiz!</b>\n\nQuyidagi menyudan kerakli bo'limni tanlang:", reply_markup=get_admin_keyboard())
+Line 826: await callback.message.edit_text(f"СЂСџвЂТђ <b>OBUNACHILAR:</b>\n\nUmumiy botdan foydalanganlar: <b>{count} ta</b>\nHozirda faol ulangan AI'lar: <b>{active} ta</b>", reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="🔙 Orqaga", callback_data="admin_back")]]))
+Line 840: text += f"💳 <b>ID:</b> #{p['id']}\nСЂСџвЂВ¤ <b>Foydalanuvchi:</b> <code>{p['user_id']}</code>\n💰 <b>Summa:</b> {p['amount']:,} so'm ({p['tariff_type'].upper()})\n\n"
+Line 856: await callback.message.edit_text("СЂСџвЂвЂ <b>Boshqaruv Paneliga Xush Kelibsiz!</b>\n\nQuyidagi menyudan kerakli bo'limni tanlang:", reply_markup=get_admin_keyboard())
+Line 1046: print(f"СЂСџвЂвЂ Admin ID: {ADMIN_ID}")

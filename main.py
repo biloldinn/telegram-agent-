@@ -960,8 +960,20 @@ async def handle_text(message: types.Message):
     await asyncio.sleep(1.0)
 
     response = await get_ai_response(text, user_id)
-    await message.answer(response)
-    await save_message(user_id, text, response)
+    
+    # HTML taglarni tozalash (Telegram xato bermasligi uchun <ol>, <li> kabilarni oddiy matnga aylantiramiz)
+    clean_resp = response.replace('<ol>', '').replace('</ol>', '').replace('<ul>', '').replace('</ul>', '')
+    clean_resp = clean_resp.replace('<li>', '• ').replace('</li>', '\n').replace('<br>', '\n').replace('**', '<b>').replace('**', '</b>')
+    
+    try:
+        await message.answer(clean_resp)
+    except Exception as e:
+        # Agar yana qandaydir xato bo'lsa (masalan noto'g'ri teg), oddiy matn ko'rinishida yuborish
+        import re
+        safe_text = re.sub(r'<[^>]+>', '', clean_resp)
+        await message.answer(safe_text)
+        
+    await save_message(user_id, text, clean_resp)
 
 # ============ ISHGA TUSHIRISH (24/7 RESILIENT LOOP) ============
 async def check_expired_trials_cron():
