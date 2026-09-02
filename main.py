@@ -189,6 +189,22 @@ async def cmd_start(message: types.Message):
                 pass
 
     is_new = await add_user(user_id, username, full_name)
+    user = await get_user(user_id)
+    agreed = user.get("agreed_to_terms", False) if user else False
+    
+    if not agreed:
+        policy_text = """🔐 **Maxfiylik Siyosati (Privacy Policy) va Foydalanish Shartlari**
+
+SMM AI Agent botidan foydalanish orqali siz quyidagilarga rozi bo'lasiz:
+1. Botingiz orqali faqat qonuniy va ruxsat etilgan mijozlarga xizmat ko'rsatishga.
+2. Tizim sizning nomingizdan mijozlarga avtomatik javob berishi uchun profilingizdan (sessiya) vaqtincha foydalanishiga.
+3. Spamm, firibgarlik yoki Telegram qoidalarini buzadigan harakatlar qilmaslikka.
+
+Ushbu qoidalarni qabul qilsangiz, botdan to'liq foydalanishingiz mumkin."""
+        markup = InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="✅ Qabul qilaman", callback_data="accept_terms")]])
+        await message.answer(policy_text, reply_markup=markup, parse_mode="Markdown")
+        return
+
     has_access, status_text, days_left, tariff = await check_user_access(user_id)
 
     if is_new:
@@ -199,18 +215,20 @@ SMM AI Agent platformasiga xush kelibsiz! 🎉
 🎁 Sizga <b>3 KUNLIK BEPUL SINOV MUDDATI</b> taqdim etildi!
 📊 Holat: <i>{status_text}</i>
 
-Men sizning shaxsiy Telegram profilingizni aqlli <b>Avto-Javob beruvchi Sotuv Menejeriga</b> aylantirib beraman. Mijozlaringizga sizning o'rningizda toza O'zbek tilida, matn va hatto 🎙 Ovozli xabar orqali javob beraman!
+Men sizning shaxsiy Telegram profilingizni aqlli <b>Avto-Javob beruvchi Sotuv Menejeriga</b> aylantirib beraman. 
+
+⚠️ **MUHIM OGOHLANTIRISH!**
+Profilni ulayotgan vaqtingizda (kodni kiritgandan so'ng), Telegram rasmiy sahifasidan sizga xabar keladi va pastida **«Ha, bu menman» (Yes, it's me)** degan tugma chiqadi. Ushbu tugmani bosishingiz SHART! Aks holda tizim profilga ulana olmaydi va AI bot ishlamaydi.
 
 🔹 <i>Profilni ulash va sozlash uchun menyudan foydalaning:</i>"""
     else:
         # Qaytib kelgan foydalanuvchi — holat xabari
-        if has_access:
-            holat_emoji = "✅"
-        else:
-            holat_emoji = "⚠️"
+        holat_emoji = "✅" if has_access else "⚠️"
         welcome_text = f"""Xush kelibsiz, <b>{full_name}</b>! 🔹
 
 {holat_emoji} Tarif holati: <i>{status_text}</i>
+
+⚠️ **ESLATMA:** Agar profilni qayta ulayotgan bo'lsangiz, Telegramdan keladigan xabardagi **«Ha, bu menman»** tugmasini bosishni unutmang!
 
 🔹 <i>Menyudan kerakli bo'limni tanlang:</i>"""
 
@@ -330,6 +348,14 @@ async def cmd_hlp(m: types.Message): await show_help(m)
 
 
 # ============ CALLBACK QUERIES (TUGMALAR) ============
+@dp.callback_query(F.data == "accept_terms")
+async def cb_accept_terms(callback: CallbackQuery):
+    await users_col.update_one({'user_id': callback.from_user.id}, {'$set': {'agreed_to_terms': True}})
+    await callback.message.delete()
+    # Shunchaki start komandasini qayta chaqiramiz
+    await cmd_start(callback.message)
+    await callback.answer("Rahmat! Qoidalarni qabul qildingiz.")
+
 @dp.callback_query(F.data == "btn_tariffs")
 async def cb_show_tariffs(callback: CallbackQuery):
     await callback.message.delete()
