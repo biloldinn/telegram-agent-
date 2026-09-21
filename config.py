@@ -17,7 +17,7 @@ def clean_int(key, default=0):
         return default
 
 # ============ TELEGRAM BOT SOZLAMALARI ============
-BOT_TOKEN = clean_env("BOT_TOKEN", "8920752694:AAHxOneeAis1i4dHOpxeItOJ36EVJDqj-Wg")
+BOT_TOKEN = clean_env("BOT_TOKEN", "8794010626:AAH3cmd3ZoCCEgvMxaa6mFGA3hjr-ZpKEsg")
 ADMIN_ID = clean_int("ADMIN_ID", 7744852023)
 OWNER_NAME = clean_env("OWNER_NAME", "Turg'unboyev Biloliddin")
 

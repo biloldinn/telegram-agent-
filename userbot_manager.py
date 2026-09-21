@@ -224,8 +224,6 @@ async def on_new_userbot_message(event):
         
     prompt = ""
     if is_audio:
-        if tariff_name != "smm":
-            return
             
         async with event.client.action(sender_id, 'record-audio'):
             tmp_dir = "temp_audio"
